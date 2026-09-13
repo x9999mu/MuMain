@@ -167,16 +167,25 @@ static_assert(sizeof(FogUniform) == 48, "FogUniform must be 48 bytes (HLSL cbuff
 #ifndef MU_SHADER_DIR
 #define MU_SHADER_DIR ""
 #endif
-    // Primary: cmake build-output path (works for local dev builds).
-    // Fallback: shaders/ next to the executable (works for CI artifacts and installs).
-    std::string filename = std::string(name) + "." + stage + "." + ext;
-    std::filesystem::path cmakePath = std::filesystem::path(MU_SHADER_DIR) / filename;
+    // Primary: CMake build-output path (works for local developer builds).
+    // Packaged apps stage shaders beside the executable and set that directory
+    // as the working directory before renderer initialization. SDL_GetBasePath()
+    // points at Contents/Resources for macOS bundles, not Contents/MacOS.
+    const std::filesystem::path filename = std::string(name) + "." + stage + "." + ext;
+    const std::filesystem::path cmakePath = std::filesystem::path(MU_SHADER_DIR) / filename;
     if (!cmakePath.empty() && std::filesystem::exists(cmakePath))
     {
         return cmakePath.string();
     }
-    const char* basePath = SDL_GetBasePath();
-    if (basePath != nullptr)
+
+    std::error_code error;
+    const std::filesystem::path packagedPath = std::filesystem::current_path(error) / "shaders" / filename;
+    if (!error && std::filesystem::exists(packagedPath))
+    {
+        return packagedPath.string();
+    }
+
+    if (const char* basePath = SDL_GetBasePath(); basePath != nullptr)
     {
         return (std::filesystem::path(basePath) / "shaders" / filename).string();
     }
