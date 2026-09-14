@@ -1277,12 +1277,14 @@ namespace MUHelper
 
         if (m_config.bPickExtraItems)
         {
-            std::wstring strDisplayName = GetItemDisplayName(pItem);
+            const std::wstring strDisplayName = GetItemDisplayName(pItem);
+            std::array<wchar_t, MAX_ITEM_NAME * 2> itemName{};
+            GetItemName(pItem->Type, pItem->Level, itemName.data());
 
             for (const auto& str : m_config.aExtraItems)
             {
-                // Check if the search keyword is in the item's display name
-                if (strDisplayName.find(str) != std::wstring::npos)
+                if (strDisplayName.find(str) != std::wstring::npos
+                    || std::wcsstr(itemName.data(), str.c_str()) != nullptr)
                 {
                     return true;
                 }
