@@ -1,4 +1,4 @@
-﻿//*****************************************************************************
+//*****************************************************************************
 // Desc: implementation of the CNewUITrade class.
 //*****************************************************************************
 
@@ -430,7 +430,7 @@ void CNewUITrade::ProcessMyInvenCtrl()
     if (NULL == m_pMyInvenCtrl)
         return;
 
-    if (SEASON3B::IsPress(VK_LBUTTON))
+    if (SEASON3B::IsPress(VK_LBUTTON) || SEASON3B::IsRelease(VK_LBUTTON))
     {
         CNewUIPickedItem* pPickedItem = CNewUIInventoryCtrl::GetPickedItem();
         if (NULL == pPickedItem)
