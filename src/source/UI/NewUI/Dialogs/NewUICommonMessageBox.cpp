@@ -1901,20 +1901,27 @@ bool  SEASON3B::CMixCheckMsgBoxLayout::SetLayout()
         return false;
 
     wchar_t strText[256];
-    if (g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1] == 0)
+    if (g_MixRecipeMgr.GetCurRecipe() == NULL)
     {
-        mu_swprintf(strText, L"%ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]));
-    }
-    else if (g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2] == 0)
-    {
-        mu_swprintf(strText, L"%ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
-            I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]));
+        wcscpy(strText, I18N::Game::Combining);
     }
     else
     {
-        mu_swprintf(strText, L"%ls %ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
-            I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]),
-            I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2]));
+        if (g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1] == 0)
+        {
+            mu_swprintf(strText, L"%ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]));
+        }
+        else if (g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2] == 0)
+        {
+            mu_swprintf(strText, L"%ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
+                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]));
+        }
+        else
+        {
+            mu_swprintf(strText, L"%ls %ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
+                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]),
+                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2]));
+        }
     }
 
     pMsgBox->AddMsg(strText, RGBA(255, 255, 0, 255), MSGBOX_FONT_BOLD);
