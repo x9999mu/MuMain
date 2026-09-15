@@ -847,12 +847,6 @@ bool CNewUIMixInventory::Mix()
         }
     }
 
-    if (g_MixRecipeMgr.GetCurRecipe()->m_iWidth != -1 &&
-        g_pMyInventory->FindEmptySlot(g_MixRecipeMgr.GetCurRecipe()->m_iWidth, g_MixRecipeMgr.GetCurRecipe()->m_iHeight) == -1)
-    {
-        g_pSystemLogBox->AddText(I18N::Game::CombineItemsAfterOrganizingYourInventory, SEASON3B::TYPE_ERROR_MESSAGE);
-        return false;
-    }
 
     if (g_MixRecipeMgr.GetMixInventoryType() == SEASON3A::MIXTYPE_ATTACH_SOCKET)
     {
