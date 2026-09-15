@@ -816,21 +816,35 @@ bool CNewUIMixInventory::Mix()
 
     if (!g_MixRecipeMgr.IsReadyToMix())
     {
-        wchar_t szText[100];
-        mu_swprintf(szText, I18N::Game::YouAreLackOfSItems, I18N::Game::Combining);
-        g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
-        return false;
+        // Nếu là General Mix thì bỏ qua lỗi "Thiếu Item" và cho phép Mix tự do (gửi lên Server)
+        if (g_MixRecipeMgr.GetMixInventoryType() != SEASON3A::MIXTYPE_GOBLIN_NORMAL)
+        {
+            wchar_t szText[100];
+            mu_swprintf(szText, I18N::Game::YouAreLackOfSItems, I18N::Game::Combining);
+            g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
+            return false;
+        }
     }
 
     int iLevel = CharacterAttribute->Level;
-    if (iLevel < g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel)
+    if (g_MixRecipeMgr.GetCurRecipe() != NULL)
     {
-        wchar_t szText[100];
-        wchar_t szText2[100];
-        g_MixRecipeMgr.GetCurRecipeName(szText2, 1);
-        mu_swprintf(szText, I18N::Game::FromAboveTheLevelDSEnabledAndOn, g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel, szText2);
-        g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
-        return false;
+        if (iLevel < g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel)
+        {
+            wchar_t szText[100];
+            wchar_t szText2[100];
+            g_MixRecipeMgr.GetCurRecipeName(szText2, 1);
+            mu_swprintf(szText, I18N::Game::FromAboveTheLevelDSEnabledAndOn, g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel, szText2);
+            g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
+            return false;
+        }
+
+        if (g_MixRecipeMgr.GetCurRecipe()->m_iWidth != -1 &&
+            g_pMyInventory->FindEmptySlot(g_MixRecipeMgr.GetCurRecipe()->m_iWidth, g_MixRecipeMgr.GetCurRecipe()->m_iHeight) == -1)
+        {
+            g_pSystemLogBox->AddText(I18N::Game::CombineItemsAfterOrganizingYourInventory, SEASON3B::TYPE_ERROR_MESSAGE);
+            return false;
+        }
     }
 
     if (g_MixRecipeMgr.GetCurRecipe()->m_iWidth != -1 &&

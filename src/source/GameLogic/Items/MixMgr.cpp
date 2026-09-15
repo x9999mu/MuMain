@@ -256,9 +256,14 @@ void CMixRecipes::AddRecipe(MIX_RECIPE* pMixRecipe)
 
 BOOL CMixRecipes::IsMixSource(ITEM* pItem)
 {
+    // Luôn cho phép đặt vật phẩm vào Regular Mix (MIXTYPE_GOBLIN_NORMAL == 0)
+    if (g_MixRecipeMgr.GetMixInventoryType() == SEASON3A::MIXTYPE_GOBLIN_NORMAL)
+    {
+        return TRUE;
+    }
+
     CMixItem mixitem;
     mixitem.SetItem(pItem, 0);
-
     if (Check_LuckyItem(pItem->Type) && g_MixRecipeMgr.GetMixInventoryType() != MIXTYPE_JERRIDON)	return FALSE;
 
     if (IsCharmItem(mixitem))
