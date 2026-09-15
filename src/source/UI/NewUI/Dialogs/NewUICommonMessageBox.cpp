@@ -1914,13 +1914,13 @@ bool  SEASON3B::CMixCheckMsgBoxLayout::SetLayout()
         else if (g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2] == 0)
         {
             mu_swprintf(strText, L"%ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
-                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]));
+                        I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]));
         }
         else
         {
             mu_swprintf(strText, L"%ls %ls %ls", I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[0]),
-                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]),
-                I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2]));
+                        I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[1]),
+                        I18N::Game::Lookup(g_MixRecipeMgr.GetCurRecipe()->m_iMixName[2]));
         }
     }
 

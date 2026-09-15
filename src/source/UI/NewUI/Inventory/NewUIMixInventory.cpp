@@ -834,19 +834,21 @@ bool CNewUIMixInventory::Mix()
             wchar_t szText[100];
             wchar_t szText2[100];
             g_MixRecipeMgr.GetCurRecipeName(szText2, 1);
-            mu_swprintf(szText, I18N::Game::FromAboveTheLevelDSEnabledAndOn, g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel, szText2);
+            mu_swprintf(szText, I18N::Game::FromAboveTheLevelDSEnabledAndOn,
+                        g_MixRecipeMgr.GetCurRecipe()->m_iRequiredLevel, szText2);
             g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
             return false;
         }
 
         if (g_MixRecipeMgr.GetCurRecipe()->m_iWidth != -1 &&
-            g_pMyInventory->FindEmptySlot(g_MixRecipeMgr.GetCurRecipe()->m_iWidth, g_MixRecipeMgr.GetCurRecipe()->m_iHeight) == -1)
+            g_pMyInventory->FindEmptySlot(g_MixRecipeMgr.GetCurRecipe()->m_iWidth,
+                                          g_MixRecipeMgr.GetCurRecipe()->m_iHeight) == -1)
         {
-            g_pSystemLogBox->AddText(I18N::Game::CombineItemsAfterOrganizingYourInventory, SEASON3B::TYPE_ERROR_MESSAGE);
+            g_pSystemLogBox->AddText(I18N::Game::CombineItemsAfterOrganizingYourInventory,
+                                     SEASON3B::TYPE_ERROR_MESSAGE);
             return false;
         }
     }
-
 
     if (g_MixRecipeMgr.GetMixInventoryType() == SEASON3A::MIXTYPE_ATTACH_SOCKET)
     {

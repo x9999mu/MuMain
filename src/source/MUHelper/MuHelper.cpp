@@ -1283,8 +1283,8 @@ namespace MUHelper
 
             for (const auto& str : m_config.aExtraItems)
             {
-                if (strDisplayName.find(str) != std::wstring::npos
-                    || std::wcsstr(itemName.data(), str.c_str()) != nullptr)
+                if (strDisplayName.find(str) != std::wstring::npos ||
+                    std::wcsstr(itemName.data(), str.c_str()) != nullptr)
                 {
                     return true;
                 }
