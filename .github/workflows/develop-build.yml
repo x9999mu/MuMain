@@ -1,0 +1,332 @@
+name: Develop Build
+
+# Rolling build check for the develop branch: compile the client for Windows,
+# Linux, and macOS, bake the develop server address into config.ini, and upload
+# one zip per platform. No tests, no version bump, no release - those stay in
+# ci.yml on main.
+on:
+  push:
+    branches: [develop]
+    paths-ignore:
+      - 'src/bin/Data/**'
+      - 'src/bin/fonts/**'
+  workflow_dispatch:
+
+concurrency:
+  group: develop-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Server address written into the config.ini shipped with every build below.
+  DEVELOP_SERVER_IP: 100.108.169.118
+
+jobs:
+  build-windows:
+    name: Windows Build (x64, Release, editor OFF)
+    runs-on: windows-latest
+    env:
+      RUNTIME_DIR: out/build/develop-windows/src/Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Activate Visual Studio developer environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: x64
+
+      - name: Cache FetchContent and NuGet dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/build/develop-windows/_deps
+            .nuget
+          key: windows-x64-develop-deps-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'ClientLibrary/**/*.csproj', 'ClientLibrary/**/*.props') }}
+          restore-keys: windows-x64-develop-deps-
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+          key: vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-windows-x64-
+
+      - name: Configure CMake
+        run: >
+          cmake --preset windows-x64
+          -B out/build/develop-windows
+          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${{ github.workspace }}/toolchain-x64.cmake
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DVCPKG_INSTALLED_DIR=C:/vcpkg/installed
+          -DVCPKG_MANIFEST_MODE=ON
+          -DENABLE_EDITOR=OFF
+          -DMU_ENABLE_SHADER_COMPILATION=ON
+          -DGLSLANG_EXE=C:/vcpkg/installed/x64-windows/tools/glslang/glslangValidator.exe
+          -DSPIRV_CROSS_EXE=C:/vcpkg/installed/x64-windows/tools/spirv-cross/spirv-cross.exe
+          -DDXC_EXE=C:/vcpkg/installed/x64-windows/tools/directx-dxc/dxc.exe
+          -DMU_COPY_RUNTIME_ASSETS=OFF
+
+      - name: Build
+        run: cmake --build out/build/develop-windows --config Release
+
+      - name: Stage MSVC redistributable runtime
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VCToolsRedistDir)) {
+            throw "VCToolsRedistDir is missing from the active MSVC developer environment."
+          }
+          $redistArchitectureDirectory = Join-Path $env:VCToolsRedistDir "x64"
+          $crtDirectories = @(
+            Get-ChildItem -LiteralPath $redistArchitectureDirectory -Directory -Filter "Microsoft.VC*.CRT"
+          )
+          if ($crtDirectories.Count -ne 1) {
+            throw "Expected one active Microsoft.VC*.CRT directory under $redistArchitectureDirectory; found $($crtDirectories.Count)."
+          }
+          $crtDlls = @(
+            Get-ChildItem -LiteralPath $crtDirectories[0].FullName -File -Filter "*.dll" |
+              Sort-Object Name
+          )
+          if ($crtDlls.Count -eq 0) {
+            throw "Active MSVC CRT directory contains no redistributable DLLs."
+          }
+          Copy-Item -LiteralPath $crtDlls.FullName -Destination $env:RUNTIME_DIR -Force
+
+      # bash on Windows is Git Bash: identical bake/validate logic on all three
+      # platforms, and sed keeps the file's own bytes instead of re-encoding it.
+      - name: Bake server address into config.ini
+        shell: bash
+        run: |
+          config_path="$RUNTIME_DIR/config.ini"
+          if [ ! -f "$config_path" ]; then
+            echo "Missing seeded config.ini: $config_path" >&2
+            exit 1
+          fi
+          # GNU and BSD sed both accept an explicit backup suffix.
+          sed -i.bak "s|^ServerIP=.*|ServerIP=${DEVELOP_SERVER_IP}|" "$config_path"
+          rm -f "$config_path.bak"
+          grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
+
+      - name: Validate runtime
+        shell: bash
+        run: |
+          for path in \
+            "$RUNTIME_DIR/Main.exe" \
+            "$RUNTIME_DIR/MUnique.Client.Library.dll" \
+            "$RUNTIME_DIR/config.ini" \
+            "$RUNTIME_DIR/shaders"
+          do
+            if [ ! -e "$path" ]; then
+              echo "Missing required runtime path: $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Package build archive
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:GITHUB_WORKSPACE "MuMain-develop-windows-x64.zip"
+          Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$env:RUNTIME_DIR/*" -DestinationPath $archive -CompressionLevel Optimal
+          $size = (Get-Item -LiteralPath $archive).Length
+          if ($size -lt 1MB) {
+            throw "Suspiciously small archive ($size bytes): $archive"
+          }
+          Write-Host ("Packaged {0:N1} MiB" -f ($size / 1MB))
+
+      - name: Upload build archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mu-client-develop-windows-x64
+          path: MuMain-develop-windows-x64.zip
+          if-no-files-found: error
+
+  build-linux:
+    name: Linux Build (x64, Release, editor OFF)
+    runs-on: ubuntu-latest
+    env:
+      RUNTIME_DIR: out/build/develop-linux/src/Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build gcc g++ zip \
+            libgl1-mesa-dev libglu1-mesa-dev \
+            libx11-dev libxext-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libxi-dev libxss-dev libxtst-dev libxxf86vm-dev \
+            libwayland-dev libxkbcommon-dev wayland-protocols \
+            libasound2-dev libpulse-dev \
+            libssl-dev libcurl4-openssl-dev libturbojpeg0-dev \
+            glslang-tools spirv-cross \
+            pkg-config
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/build/develop-linux/_deps
+            .nuget
+          key: linux-x64-develop-deps-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'ClientLibrary/**/*.csproj', 'ClientLibrary/**/*.props') }}
+          restore-keys: linux-x64-develop-deps-
+
+      - name: Configure CMake
+        run: >
+          cmake --preset linux-x64
+          -B out/build/develop-linux
+          -DENABLE_EDITOR=OFF
+          -DMU_COPY_RUNTIME_ASSETS=OFF
+
+      - name: Build
+        run: cmake --build out/build/develop-linux --config Release
+
+      - name: Bake server address into config.ini
+        run: |
+          config_path="$RUNTIME_DIR/config.ini"
+          if [ ! -f "$config_path" ]; then
+            echo "Missing seeded config.ini: $config_path" >&2
+            exit 1
+          fi
+          # GNU and BSD sed both accept an explicit backup suffix.
+          sed -i.bak "s|^ServerIP=.*|ServerIP=${DEVELOP_SERVER_IP}|" "$config_path"
+          rm -f "$config_path.bak"
+          grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
+
+      - name: Validate runtime
+        run: |
+          for path in \
+            "$RUNTIME_DIR/Main" \
+            "$RUNTIME_DIR/MUnique.Client.Library.so" \
+            "$RUNTIME_DIR/config.ini" \
+            "$RUNTIME_DIR/shaders"
+          do
+            if [ ! -e "$path" ]; then
+              echo "Missing required runtime path: $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Package build archive
+        run: |
+          archive="$GITHUB_WORKSPACE/MuMain-develop-linux-x64.zip"
+          rm -f "$archive"
+          (cd "$RUNTIME_DIR" && zip -qr "$archive" .)
+          size=$(stat -c '%s' "$archive")
+          if [ "$size" -lt 1048576 ]; then
+            echo "Suspiciously small archive ($size bytes): $archive" >&2
+            exit 1
+          fi
+          echo "Packaged $((size / 1048576)) MiB"
+
+      - name: Upload build archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mu-client-develop-linux-x64
+          path: MuMain-develop-linux-x64.zip
+          if-no-files-found: error
+
+  build-macos:
+    name: macOS Build (arm64, Release, editor OFF)
+    runs-on: macos-latest
+    env:
+      BUNDLE_DIR: out/build/develop-macos/src/Release
+      RUNTIME_DIR: out/build/develop-macos/src/Release/Main.app/Contents/MacOS
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install build tools
+        run: brew install cmake ninja openssl@3 curl brotli glslang spirv-cross
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/build/develop-macos/_deps
+            .nuget
+          key: macos-arm64-develop-deps-${{ hashFiles('CMakeLists.txt', 'src/CMakeLists.txt', 'ClientLibrary/**/*.csproj', 'ClientLibrary/**/*.props') }}
+          restore-keys: macos-arm64-develop-deps-
+
+      - name: Configure CMake
+        run: >
+          cmake --preset macos-arm64
+          -B out/build/develop-macos
+          -DENABLE_EDITOR=OFF
+          -DMU_COPY_RUNTIME_ASSETS=OFF
+          -DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)
+
+      - name: Build
+        run: cmake --build out/build/develop-macos --config Release
+
+      - name: Bake server address into config.ini
+        run: |
+          config_path="$RUNTIME_DIR/config.ini"
+          if [ ! -f "$config_path" ]; then
+            echo "Missing seeded config.ini: $config_path" >&2
+            exit 1
+          fi
+          # GNU and BSD sed both accept an explicit backup suffix.
+          sed -i.bak "s|^ServerIP=.*|ServerIP=${DEVELOP_SERVER_IP}|" "$config_path"
+          rm -f "$config_path.bak"
+          grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
+
+      - name: Validate runtime
+        run: |
+          for path in \
+            "$RUNTIME_DIR/Main" \
+            "$RUNTIME_DIR/MUnique.Client.Library.dylib" \
+            "$RUNTIME_DIR/config.ini" \
+            "$RUNTIME_DIR/shaders"
+          do
+            if [ ! -e "$path" ]; then
+              echo "Missing required runtime path: $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Package build archive
+        run: |
+          archive="$GITHUB_WORKSPACE/MuMain-develop-macos-arm64.zip"
+          rm -f "$archive"
+          # -y keeps bundle symlinks as symlinks; archiving the bundle itself
+          # preserves the executable bit and the .app layout.
+          (cd "$BUNDLE_DIR" && zip -qry "$archive" Main.app)
+          size=$(stat -f '%z' "$archive")
+          if [ "$size" -lt 1048576 ]; then
+            echo "Suspiciously small archive ($size bytes): $archive" >&2
+            exit 1
+          fi
+          echo "Packaged $((size / 1048576)) MiB"
+
+      - name: Upload build archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mu-client-develop-macos-arm64
+          path: MuMain-develop-macos-arm64.zip
+          if-no-files-found: error

@@ -127,6 +127,22 @@ Actions expose builds through CI artifacts and two coordinated release streams:
 Windows x86, Debug, editor-ON, MinGW, and other configurations are not built by
 Actions; build locally when one is required.
 
+### Develop builds
+
+`.github/workflows/develop-build.yml` compiles the same three no-data runtimes
+on every push to `develop` and uploads each as a zip:
+
+- `mu-client-develop-windows-x64` -> `MuMain-develop-windows-x64.zip`
+- `mu-client-develop-linux-x64` -> `MuMain-develop-linux-x64.zip`
+- `mu-client-develop-macos-arm64` -> `MuMain-develop-macos-arm64.zip`
+
+These are rolling snapshots, not releases: no tests, no version bump, no GitHub
+release. The only difference from the release archives is the server address -
+`config.ini` ships with `ServerIP=100.108.169.118` baked in, so a develop build
+connects to the develop server without editing the config. The zips still carry
+no `Data/` or `fonts/`; assemble them with a `data-<id>` archive as described
+below.
+
 ### Assemble a release
 
 Download the no-data runtime for your OS plus the linked `data-<id>` archive and
