@@ -3,8 +3,9 @@ name: Develop Build
 # Rolling build for the develop branch: compile the client for Windows, Linux,
 # and macOS, bake the develop server address into config.ini, and upload one zip
 # per platform. Each zip bundles the game data (Data/ and fonts/), so a download
-# is directly playable. No tests, no version bump, no release - those stay in
-# ci.yml on main.
+# is directly playable. The archives are also published as assets of the rolling
+# 'develop-latest' prerelease, which needs no GitHub login to download. No tests,
+# no version bump - those stay in ci.yml on main.
 on:
   push:
     branches: [develop]
@@ -359,3 +360,65 @@ jobs:
           name: mu-client-develop-macos-arm64
           path: MuMain-develop-macos-arm64.zip
           if-no-files-found: error
+
+  publish:
+    name: Publish rolling develop release
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    # Assets of the rolling tag are replaced one by one, so a run cancelled
+    # mid-upload would leave the release mixing two commits. Queue instead.
+    concurrency:
+      group: develop-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Download Windows build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: mu-client-develop-windows-x64
+          path: dist
+
+      - name: Download Linux build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: mu-client-develop-linux-x64
+          path: dist
+
+      - name: Download macOS build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: mu-client-develop-macos-arm64
+          path: dist
+
+      - name: Publish release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: develop-latest
+        run: |
+          ls -lh dist
+
+          notes_file="${RUNNER_TEMP}/develop-release-notes.md"
+          {
+            echo "Rolling client build from the \`develop\` branch."
+            echo
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Build: [run ${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo
+            echo "Every archive is self-contained: client binary, baked config.ini"
+            echo "(develop server), compiled shaders and the full Data/ + fonts/ game data."
+          } > "$notes_file"
+
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --title "Develop build" \
+              --prerelease \
+              --notes-file "$notes_file"
+          fi
+
+          gh release upload "$RELEASE_TAG" dist/*.zip --clobber
+          # Keep the notes pointing at the commit that produced the assets.
+          gh release edit "$RELEASE_TAG" --notes-file "$notes_file"
