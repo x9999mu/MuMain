@@ -12904,6 +12904,9 @@
   <data name="BasicAttackFallback" xml:space="preserve">
     <value>Basic Attack Fallback</value>
   </data>
+  <data name="Random Move" xml:space="preserve">
+    <value>Random Move</value>
+  </data>
   <data name="Connection lost" xml:space="preserve">
     <value>Connection lost</value>
   </data>

@@ -16,7 +16,7 @@ using namespace MUHelper;
 
 // defining constants naming since the original code hard coded these ids
 
-enum ECheckBoxId: uint16_t
+enum ECheckBoxId : uint16_t
 {
     CHECKBOX_ID_POTION = 0,
     CHECKBOX_ID_LONG_DISTANCE,
@@ -45,7 +45,8 @@ enum ECheckBoxId: uint16_t
     CHECKBOX_ID_DR_ATTACK_CEASE,
     CHECKBOX_ID_DR_ATTACK_AUTO,
     CHECKBOX_ID_DR_ATTACK_TOGETHER,
-    CHECKBOX_ID_FALLBACK_BASIC_ATTACK
+    CHECKBOX_ID_FALLBACK_BASIC_ATTACK,
+    CHECKBOX_ID_RANDOM_MOVE,
 };
 
 enum EButtonId : uint16_t
@@ -180,24 +181,40 @@ void CNewUIMuHelper::InitButtons()
     m_TabBtn.ChangeRadioButtonInfo(true, m_Pos.x + 10.f, m_Pos.y + 48.f, 56, 22);
     m_TabBtn.ChangeFrame(m_iCurrentOpenTab);
 
-    InsertButton(IMAGE_CHAINFO_BTN_STAT, m_Pos.x + 56, m_Pos.y + 78, 16, 15, 0, 0, 0, 0, nullptr, nullptr, BUTTON_ID_HUNT_RANGE_ADD, 0);
-    InsertButton(IMAGE_MACROUI_HELPER_RAGEMINUS, m_Pos.x + 56, m_Pos.y + 97, 16, 15, 0, 0, 0, 0, nullptr, nullptr, BUTTON_ID_HUNT_RANGE_MINUS, 0);
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 191, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_SKILL2_CONFIG, 0); //-- skill 2
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 243, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_SKILL3_CONFIG, 0); //-- skill 3
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 84, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_POTION_CONFIG_ELF, 0); //-- Buff
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 79, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_POTION_CONFIG_SUMMY, 0); //-- potion
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 84, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_POTION_CONFIG, 0); //-- potion
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 17, m_Pos.y + 234, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_PARTY_CONFIG, 0); //-- potion
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 17, m_Pos.y + 234, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr, BUTTON_ID_PARTY_CONFIG_ELF, 0); //-- potion
+    InsertButton(IMAGE_CHAINFO_BTN_STAT, m_Pos.x + 56, m_Pos.y + 78, 16, 15, 0, 0, 0, 0, nullptr, nullptr,
+                 BUTTON_ID_HUNT_RANGE_ADD, 0);
+    InsertButton(IMAGE_MACROUI_HELPER_RAGEMINUS, m_Pos.x + 56, m_Pos.y + 97, 16, 15, 0, 0, 0, 0, nullptr, nullptr,
+                 BUTTON_ID_HUNT_RANGE_MINUS, 0);
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 191, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_SKILL2_CONFIG, 0); //-- skill 2
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 243, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_SKILL3_CONFIG, 0); //-- skill 3
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 84, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_POTION_CONFIG_ELF, 0); //-- Buff
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 79, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_POTION_CONFIG_SUMMY, 0); //-- potion
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 84, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_POTION_CONFIG, 0); //-- potion
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 17, m_Pos.y + 234, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_PARTY_CONFIG, 0); //-- potion
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 17, m_Pos.y + 234, 38, 24, 1, 0, 1, 1, &I18N::Game::Setting, nullptr,
+                 BUTTON_ID_PARTY_CONFIG_ELF, 0); //-- potion
 
-    InsertButton(IMAGE_CHAINFO_BTN_STAT, m_Pos.x + 56, m_Pos.y + 78, 16, 15, 0, 0, 0, 0, nullptr, nullptr, BUTTON_ID_PICK_RANGE_ADD, 1);
-    InsertButton(IMAGE_MACROUI_HELPER_RAGEMINUS, m_Pos.x + 56, m_Pos.y + 97, 16, 15, 0, 0, 0, 0, nullptr, nullptr, BUTTON_ID_PICK_RANGE_MINUS, 1);
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 208, 38, 24, 1, 0, 1, 1, &I18N::Game::Add, nullptr, BUTTON_ID_ADD_OTHER_ITEM, 1); //-- Buff
-    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 309, 38, 24, 1, 0, 1, 1, &I18N::Game::Delete, nullptr, BUTTON_ID_DELETE_OTHER_ITEM, 1); //-- Buff
+    InsertButton(IMAGE_CHAINFO_BTN_STAT, m_Pos.x + 56, m_Pos.y + 78, 16, 15, 0, 0, 0, 0, nullptr, nullptr,
+                 BUTTON_ID_PICK_RANGE_ADD, 1);
+    InsertButton(IMAGE_MACROUI_HELPER_RAGEMINUS, m_Pos.x + 56, m_Pos.y + 97, 16, 15, 0, 0, 0, 0, nullptr, nullptr,
+                 BUTTON_ID_PICK_RANGE_MINUS, 1);
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 208, 38, 24, 1, 0, 1, 1, &I18N::Game::Add, nullptr,
+                 BUTTON_ID_ADD_OTHER_ITEM, 1); //-- Buff
+    InsertButton(IMAGE_CLEARNESS_BTN, m_Pos.x + 132, m_Pos.y + 309, 38, 24, 1, 0, 1, 1, &I18N::Game::Delete, nullptr,
+                 BUTTON_ID_DELETE_OTHER_ITEM, 1); //-- Buff
     //--
-    InsertButton(IMAGE_IGS_BUTTON, m_Pos.x + 120, m_Pos.y + 388, 52, 26, 1, 0, 1, 1, &I18N::Game::SaveSetting, nullptr, BUTTON_ID_SAVE_CONFIG, -1);
-    InsertButton(IMAGE_IGS_BUTTON, m_Pos.x + 65, m_Pos.y + 388, 52, 26, 1, 0, 1, 1, &I18N::Game::Initialization, nullptr, BUTTON_ID_INIT_CONFIG, -1);
-    InsertButton(IMAGE_BASE_WINDOW_BTN_EXIT, m_Pos.x + 20, m_Pos.y + 388, 36, 29, 0, 0, 0, 0, nullptr, &I18N::Game::Close388, BUTTON_ID_EXIT_CONFIG, -1);
+    InsertButton(IMAGE_IGS_BUTTON, m_Pos.x + 120, m_Pos.y + 388, 52, 26, 1, 0, 1, 1, &I18N::Game::SaveSetting, nullptr,
+                 BUTTON_ID_SAVE_CONFIG, -1);
+    InsertButton(IMAGE_IGS_BUTTON, m_Pos.x + 65, m_Pos.y + 388, 52, 26, 1, 0, 1, 1, &I18N::Game::Initialization,
+                 nullptr, BUTTON_ID_INIT_CONFIG, -1);
+    InsertButton(IMAGE_BASE_WINDOW_BTN_EXIT, m_Pos.x + 20, m_Pos.y + 388, 36, 29, 0, 0, 0, 0, nullptr,
+                 &I18N::Game::Close388, BUTTON_ID_EXIT_CONFIG, -1);
 
     RegisterBtnCharacter(0xFF, BUTTON_ID_HUNT_RANGE_ADD);
     RegisterBtnCharacter(0xFF, BUTTON_ID_HUNT_RANGE_MINUS);
@@ -234,41 +251,71 @@ void CNewUIMuHelper::InitButtons()
 
 void CNewUIMuHelper::InitCheckBox()
 {
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 80, 15, 15, 0, &I18N::Game::Potion, CHECKBOX_ID_POTION, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 122, 15, 15, 0, &I18N::Game::LongDistanceCounterAttack, CHECKBOX_ID_LONG_DISTANCE, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 137, 15, 15, 0, &I18N::Game::OriginalPosition, CHECKBOX_ID_ORIG_POSITION, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 174, 15, 15, 0, &I18N::Game::Delay, CHECKBOX_ID_SKILL2_DELAY, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 191, 15, 15, 0, &I18N::Game::Con, CHECKBOX_ID_SKILL2_CONDITION, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 226, 15, 15, 0, &I18N::Game::Delay, CHECKBOX_ID_SKILL3_DELAY, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 243, 15, 15, 0, &I18N::Game::Con, CHECKBOX_ID_SKILL3_CONDITION, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 226, 15, 15, 0, &I18N::Game::Combo, CHECKBOX_ID_COMBO, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 266, 15, 15, 0, &I18N::Game::BasicAttackFallback, CHECKBOX_ID_FALLBACK_BASIC_ATTACK, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 291, 15, 15, 0, &I18N::Game::BuffDuration, CHECKBOX_ID_BUFF_DURATION, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 80, 15, 15, 0, &I18N::Game::Potion, CHECKBOX_ID_POTION,
+                   0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 122, 15, 15, 0, &I18N::Game::LongDistanceCounterAttack,
+                   CHECKBOX_ID_LONG_DISTANCE, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 137, 15, 15, 0, &I18N::Game::OriginalPosition,
+                   CHECKBOX_ID_ORIG_POSITION, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 174, 15, 15, 0, &I18N::Game::Delay,
+                   CHECKBOX_ID_SKILL2_DELAY, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 191, 15, 15, 0, &I18N::Game::Con,
+                   CHECKBOX_ID_SKILL2_CONDITION, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 226, 15, 15, 0, &I18N::Game::Delay,
+                   CHECKBOX_ID_SKILL3_DELAY, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 94, m_Pos.y + 243, 15, 15, 0, &I18N::Game::Con,
+                   CHECKBOX_ID_SKILL3_CONDITION, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 226, 15, 15, 0, &I18N::Game::Combo, CHECKBOX_ID_COMBO,
+                   0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 266, 15, 15, 0, &I18N::Game::BasicAttackFallback,
+                   CHECKBOX_ID_FALLBACK_BASIC_ATTACK, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 291, 15, 15, 0, &I18N::Game::RandomMove,
+                   CHECKBOX_ID_RANDOM_MOVE, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 316, 15, 15, 0, &I18N::Game::BuffDuration,
+                   CHECKBOX_ID_BUFF_DURATION, 0);
 
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 218, 15, 15, 0, &I18N::Game::UseDarkSpirits, CHECKBOX_ID_USE_PET, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 218, 15, 15, 0, &I18N::Game::Party, CHECKBOX_ID_PARTY, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 97, 15, 15, 0, &I18N::Game::AutoHeal, CHECKBOX_ID_AUTO_HEAL, 0);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 97, 15, 15, 0, &I18N::Game::DrainLife, CHECKBOX_ID_DRAIN_LIFE, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 218, 15, 15, 0, &I18N::Game::UseDarkSpirits,
+                   CHECKBOX_ID_USE_PET, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 218, 15, 15, 0, &I18N::Game::Party, CHECKBOX_ID_PARTY,
+                   0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 97, 15, 15, 0, &I18N::Game::AutoHeal,
+                   CHECKBOX_ID_AUTO_HEAL, 0);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 97, 15, 15, 0, &I18N::Game::DrainLife,
+                   CHECKBOX_ID_DRAIN_LIFE, 0);
 
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 80, 15, 15, 0, &I18N::Game::RepairItem, CHECKBOX_ID_REPAIR_ITEM, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 17, m_Pos.y + 125, 15, 15, 0, &I18N::Game::PickAllNearItems, CHECKBOX_ID_PICK_ALL, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 17, m_Pos.y + 152, 15, 15, 0, &I18N::Game::PickSelectedItems, CHECKBOX_ID_PICK_SELECTED, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 79, m_Pos.y + 80, 15, 15, 0, &I18N::Game::RepairItem,
+                   CHECKBOX_ID_REPAIR_ITEM, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 17, m_Pos.y + 125, 15, 15, 0, &I18N::Game::PickAllNearItems,
+                   CHECKBOX_ID_PICK_ALL, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 17, m_Pos.y + 152, 15, 15, 0, &I18N::Game::PickSelectedItems,
+                   CHECKBOX_ID_PICK_SELECTED, 1);
 
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 170, 15, 15, 0, &I18N::Game::JewelGem, CHECKBOX_ID_PICK_JEWEL, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 85, m_Pos.y + 170, 15, 15, 0, &I18N::Game::SetItem, CHECKBOX_ID_PICK_ANCIENT, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 185, 15, 15, 0, &I18N::Game::Zen, CHECKBOX_ID_PICK_ZEN, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 85, m_Pos.y + 185, 15, 15, 0, &I18N::Game::ExcellentItem, CHECKBOX_ID_PICK_EXCELLENT, 1);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 200, 15, 15, 0, &I18N::Game::AddExtraItem, CHECKBOX_ID_ADD_OTHER_ITEM, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 170, 15, 15, 0, &I18N::Game::JewelGem,
+                   CHECKBOX_ID_PICK_JEWEL, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 85, m_Pos.y + 170, 15, 15, 0, &I18N::Game::SetItem,
+                   CHECKBOX_ID_PICK_ANCIENT, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 185, 15, 15, 0, &I18N::Game::Zen, CHECKBOX_ID_PICK_ZEN,
+                   1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 85, m_Pos.y + 185, 15, 15, 0, &I18N::Game::ExcellentItem,
+                   CHECKBOX_ID_PICK_EXCELLENT, 1);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 22, m_Pos.y + 200, 15, 15, 0, &I18N::Game::AddExtraItem,
+                   CHECKBOX_ID_ADD_OTHER_ITEM, 1);
     //--
 
-    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 94, m_Pos.y + 235, 15, 15, 0, &I18N::Game::CeaseAttack, CHECKBOX_ID_DR_ATTACK_CEASE, 0);
-    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 30, m_Pos.y + 235, 15, 15, 0, &I18N::Game::AutoAttack, CHECKBOX_ID_DR_ATTACK_AUTO, 0);
-    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 30, m_Pos.y + 250, 15, 15, 0, &I18N::Game::AttackTogether, CHECKBOX_ID_DR_ATTACK_TOGETHER, 0);
+    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 94, m_Pos.y + 235, 15, 15, 0, &I18N::Game::CeaseAttack,
+                   CHECKBOX_ID_DR_ATTACK_CEASE, 0);
+    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 30, m_Pos.y + 235, 15, 15, 0, &I18N::Game::AutoAttack,
+                   CHECKBOX_ID_DR_ATTACK_AUTO, 0);
+    InsertCheckBox(IMAGE_MACROUI_HELPER_OPTIONBUTTON, m_Pos.x + 30, m_Pos.y + 250, 15, 15, 0,
+                   &I18N::Game::AttackTogether, CHECKBOX_ID_DR_ATTACK_TOGETHER, 0);
 
     //--
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 80, 15, 15, 0, &I18N::Game::AutoAcceptFriend, CHECKBOX_ID_AUTO_ACCEPT_FRIEND, 2);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 125, 15, 15, 0, &I18N::Game::PVPCounterattack, CHECKBOX_ID_AUTO_DEFEND, 2);
-    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 97, 15, 15, 0, &I18N::Game::AutoAcceptGuildMember, CHECKBOX_ID_AUTO_ACCEPT_GUILD, 2);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 80, 15, 15, 0, &I18N::Game::AutoAcceptFriend,
+                   CHECKBOX_ID_AUTO_ACCEPT_FRIEND, 2);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 125, 15, 15, 0, &I18N::Game::PVPCounterattack,
+                   CHECKBOX_ID_AUTO_DEFEND, 2);
+    InsertCheckBox(IMAGE_CHECKBOX_BTN, m_Pos.x + 18, m_Pos.y + 97, 15, 15, 0, &I18N::Game::AutoAcceptGuildMember,
+                   CHECKBOX_ID_AUTO_ACCEPT_GUILD, 2);
 
     RegisterBoxCharacter(0xFF, CHECKBOX_ID_POTION);
     RegisterBoxCharacter(0xFF, CHECKBOX_ID_LONG_DISTANCE);
@@ -288,6 +335,7 @@ void CNewUIMuHelper::InitCheckBox()
     RegisterBoxCharacter(0xFF, CHECKBOX_ID_AUTO_DEFEND);
     RegisterBoxCharacter(0xFF, CHECKBOX_ID_AUTO_ACCEPT_GUILD);
     RegisterBoxCharacter(0xFF, CHECKBOX_ID_FALLBACK_BASIC_ATTACK);
+    RegisterBoxCharacter(0xFF, CHECKBOX_ID_RANDOM_MOVE);
 
     RegisterBoxCharacter(Dark_Knight, CHECKBOX_ID_SKILL3_DELAY);
     RegisterBoxCharacter(Dark_Knight, CHECKBOX_ID_SKILL3_CONDITION);
@@ -323,9 +371,9 @@ void CNewUIMuHelper::InitImage()
     InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 17, m_Pos.y + 171, 32, 38, SKILL_SLOT_SKILL1, 0);
     InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 61, m_Pos.y + 171, 32, 38, SKILL_SLOT_SKILL2, 0);
     InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 61, m_Pos.y + 222, 32, 38, SKILL_SLOT_SKILL3, 0);
-    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 21, m_Pos.y + 308, 32, 38, SKILL_SLOT_BUFF1, 0);
-    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 55, m_Pos.y + 308, 32, 38, SKILL_SLOT_BUFF2, 0);
-    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 89, m_Pos.y + 308, 32, 38, SKILL_SLOT_BUFF3, 0);
+    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 21, m_Pos.y + 333, 32, 38, SKILL_SLOT_BUFF1, 0);
+    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 55, m_Pos.y + 333, 32, 38, SKILL_SLOT_BUFF2, 0);
+    InsertIcon(BITMAP_INTERFACE_NEW_SKILLICON_BEGIN + 4, m_Pos.x + 89, m_Pos.y + 333, 32, 38, SKILL_SLOT_BUFF3, 0);
 
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 137, 20, 15, TEXTBOX_IMG_DISTANCE_TIME, 0);
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 174, 20, 15, TEXTBOX_IMG_SKILL1_TIME, 0);
@@ -360,16 +408,16 @@ void CNewUIMuHelper::InitText()
     InsertText(m_Pos.x + 18, m_Pos.y + 78, I18N::Game::Range, 1, 0); // Range
     InsertText(m_Pos.x + 18, m_Pos.y + 83, L"________", 2, 0);
     InsertText(m_Pos.x + 110, m_Pos.y + 141, I18N::Game::Distance, 3, 0); // Distance
-    //InsertText(m_Pos.x + 162, m_Pos.y + 141, I18N::Game::Min, 4, 0);
+    // InsertText(m_Pos.x + 162, m_Pos.y + 141, I18N::Game::Min, 4, 0);
     InsertText(m_Pos.x + 162, m_Pos.y + 141, L"s", 4, 0);
 
-    InsertText(m_Pos.x + 18, m_Pos.y + 160, I18N::Game::BasicSkill, 5, 0); // Basic Skill
+    InsertText(m_Pos.x + 18, m_Pos.y + 160, I18N::Game::BasicSkill, 5, 0);       // Basic Skill
     InsertText(m_Pos.x + 59, m_Pos.y + 160, I18N::Game::ActivationSkill1, 7, 0); // Activation Skill 1
-    //InsertText(m_Pos.x + 162, m_Pos.y + 178, I18N::Game::Min, 8, 0);
+    // InsertText(m_Pos.x + 162, m_Pos.y + 178, I18N::Game::Min, 8, 0);
     InsertText(m_Pos.x + 162, m_Pos.y + 178, L"s", 8, 0);
     InsertText(m_Pos.x + 59, m_Pos.y + 212, I18N::Game::ActivationSkill2, 9, 0); // Activation Skill 2
 
-    //InsertText(m_Pos.x + 162, m_Pos.y + 230, I18N::Game::Min, 10, 0);
+    // InsertText(m_Pos.x + 162, m_Pos.y + 230, I18N::Game::Min, 10, 0);
     InsertText(m_Pos.x + 162, m_Pos.y + 230, L"s", 10, 0);
     InsertText(m_Pos.x + 18, m_Pos.y + 78, I18N::Game::Range, 11, 1); // Range
     InsertText(m_Pos.x + 18, m_Pos.y + 83, L"________", 12, 1);
@@ -649,9 +697,7 @@ bool CNewUIMuHelper::UpdateMouseEvent()
 
             bool bPrevVisible = g_pNewUISystem->IsVisible(INTERFACE_MUHELPER_SKILL_LIST);
 
-            if (iIconIndex == SKILL_SLOT_SKILL1
-                || iIconIndex == SKILL_SLOT_SKILL2
-                || iIconIndex == SKILL_SLOT_SKILL3)
+            if (iIconIndex == SKILL_SLOT_SKILL1 || iIconIndex == SKILL_SLOT_SKILL2 || iIconIndex == SKILL_SLOT_SKILL3)
             {
                 g_pNewUIMuHelperSkillList->FilterByAttackSkills();
             }
@@ -693,7 +739,7 @@ bool CNewUIMuHelper::UpdateMouseEvent()
             CUITextInputBox::ReleaseFocus();
         }
 
-        POINT ptExitBtn = { m_Pos.x + 169, m_Pos.y + 7 };
+        POINT ptExitBtn = {m_Pos.x + 169, m_Pos.y + 7};
         if (CheckMouseIn(ptExitBtn.x, ptExitBtn.y, 13, 12))
         {
             g_pNewUISystem->Hide(SEASON3B::INTERFACE_MUHELPER);
@@ -734,7 +780,7 @@ bool CNewUIMuHelper::UpdateKeyEvent()
         {
             g_pNewUISystem->Hide(INTERFACE_MUHELPER);
             g_pNewUISystem->Hide(INTERFACE_MUHELPER_SKILL_LIST);
-            //PlayBuffer(SOUND_CLICK01);
+            // PlayBuffer(SOUND_CLICK01);
             SetFocus(g_hWnd);
             CUITextInputBox::ReleaseFocus();
 
@@ -746,7 +792,8 @@ bool CNewUIMuHelper::UpdateKeyEvent()
 
 void CNewUIMuHelper::ApplyConfigFromCheckbox(int iCheckboxId, bool bState)
 {
-    switch (iCheckboxId) {
+    switch (iCheckboxId)
+    {
     case CHECKBOX_ID_POTION:
         _TempConfig.bUseHealPotion = bState;
         break;
@@ -761,48 +808,44 @@ void CNewUIMuHelper::ApplyConfigFromCheckbox(int iCheckboxId, bool bState)
 
     case CHECKBOX_ID_SKILL2_DELAY:
         _TempConfig.aiSkillCondition[1] &= ~ON_CONDITION;
-        _TempConfig.aiSkillCondition[1] = bState
-            ? (_TempConfig.aiSkillCondition[1] | ON_TIMER)
-            : (_TempConfig.aiSkillCondition[1] & ~ON_TIMER);
+        _TempConfig.aiSkillCondition[1] =
+            bState ? (_TempConfig.aiSkillCondition[1] | ON_TIMER) : (_TempConfig.aiSkillCondition[1] & ~ON_TIMER);
         break;
 
     case CHECKBOX_ID_SKILL2_CONDITION:
         _TempConfig.aiSkillCondition[1] &= ~ON_TIMER;
-        _TempConfig.aiSkillCondition[1] = bState
-            ? (_TempConfig.aiSkillCondition[1] | ON_CONDITION)
-            : (_TempConfig.aiSkillCondition[1] & ~ON_CONDITION);
+        _TempConfig.aiSkillCondition[1] = bState ? (_TempConfig.aiSkillCondition[1] | ON_CONDITION)
+                                                 : (_TempConfig.aiSkillCondition[1] & ~ON_CONDITION);
         break;
 
     case CHECKBOX_ID_SKILL3_DELAY:
         _TempConfig.aiSkillCondition[2] &= ~ON_CONDITION;
-        _TempConfig.aiSkillCondition[2] = bState
-            ? (_TempConfig.aiSkillCondition[2] | ON_TIMER)
-            : (_TempConfig.aiSkillCondition[2] & ~ON_TIMER);
+        _TempConfig.aiSkillCondition[2] =
+            bState ? (_TempConfig.aiSkillCondition[2] | ON_TIMER) : (_TempConfig.aiSkillCondition[2] & ~ON_TIMER);
         break;
 
     case CHECKBOX_ID_SKILL3_CONDITION:
         _TempConfig.aiSkillCondition[2] &= ~ON_TIMER;
-        _TempConfig.aiSkillCondition[2] = bState
-            ? (_TempConfig.aiSkillCondition[2] | ON_CONDITION)
-            : (_TempConfig.aiSkillCondition[2] & ~ON_CONDITION);
+        _TempConfig.aiSkillCondition[2] = bState ? (_TempConfig.aiSkillCondition[2] | ON_CONDITION)
+                                                 : (_TempConfig.aiSkillCondition[2] & ~ON_CONDITION);
         break;
 
     case CHECKBOX_ID_COMBO:
-	{
-		auto cboxCombo = m_CheckBoxList[CHECKBOX_ID_COMBO];
+    {
+        auto cboxCombo = m_CheckBoxList[CHECKBOX_ID_COMBO];
 
-		if (bState == true)
-		{
-			if (m_aiSelectedSkills[0] <= 0 || m_aiSelectedSkills[1] <= 0 || m_aiSelectedSkills[2] <= 0)
-			{
-				g_pSystemLogBox->AddText(I18N::Game::InOrderToUseComboSkill, SEASON3B::TYPE_ERROR_MESSAGE);
-				cboxCombo.box->RegisterBoxState(false);
-			}
-		}
-		
-		_TempConfig.bUseCombo = cboxCombo.box->GetBoxState();
-		break;
-	}
+        if (bState == true)
+        {
+            if (m_aiSelectedSkills[0] <= 0 || m_aiSelectedSkills[1] <= 0 || m_aiSelectedSkills[2] <= 0)
+            {
+                g_pSystemLogBox->AddText(I18N::Game::InOrderToUseComboSkill, SEASON3B::TYPE_ERROR_MESSAGE);
+                cboxCombo.box->RegisterBoxState(false);
+            }
+        }
+
+        _TempConfig.bUseCombo = cboxCombo.box->GetBoxState();
+        break;
+    }
 
     case CHECKBOX_ID_BUFF_DURATION:
         _TempConfig.bBuffDuration = bState;
@@ -841,26 +884,26 @@ void CNewUIMuHelper::ApplyConfigFromCheckbox(int iCheckboxId, bool bState)
         break;
 
     case CHECKBOX_ID_PICK_ALL:
-	{
-		auto cboxPickSelected = m_CheckBoxList[CHECKBOX_ID_PICK_SELECTED];
-		if (cboxPickSelected.box->GetBoxState())
-		{
-			cboxPickSelected.box->RegisterBoxState(false);
-		}
-		_TempConfig.bPickAllItems = bState;
-		break;
-	}
+    {
+        auto cboxPickSelected = m_CheckBoxList[CHECKBOX_ID_PICK_SELECTED];
+        if (cboxPickSelected.box->GetBoxState())
+        {
+            cboxPickSelected.box->RegisterBoxState(false);
+        }
+        _TempConfig.bPickAllItems = bState;
+        break;
+    }
 
     case CHECKBOX_ID_PICK_SELECTED:
-	{
-		auto cboxPickAll = m_CheckBoxList[CHECKBOX_ID_PICK_ALL];
-		if (cboxPickAll.box->GetBoxState())
-		{
-			cboxPickAll.box->RegisterBoxState(false);
-		}
-		_TempConfig.bPickSelectItems = bState;
-		break;
-	}
+    {
+        auto cboxPickAll = m_CheckBoxList[CHECKBOX_ID_PICK_ALL];
+        if (cboxPickAll.box->GetBoxState())
+        {
+            cboxPickAll.box->RegisterBoxState(false);
+        }
+        _TempConfig.bPickSelectItems = bState;
+        break;
+    }
 
     case CHECKBOX_ID_PICK_JEWEL:
         _TempConfig.bPickJewel = bState;
@@ -896,6 +939,10 @@ void CNewUIMuHelper::ApplyConfigFromCheckbox(int iCheckboxId, bool bState)
 
     case CHECKBOX_ID_FALLBACK_BASIC_ATTACK:
         _TempConfig.bFallbackBasicAttack = bState;
+        break;
+
+    case CHECKBOX_ID_RANDOM_MOVE:
+        _TempConfig.bRandomMoveWhenIdle = bState;
         break;
 
     default:
@@ -943,7 +990,7 @@ void CNewUIMuHelper::ApplyLootRangeUpdate(int iDelta)
 
 void CNewUIMuHelper::SaveExtraItem()
 {
-    wchar_t wsExtraItem[MAX_ITEM_NAME + 1] = { 0 };
+    wchar_t wsExtraItem[MAX_ITEM_NAME + 1] = {0};
 
     m_ItemInput.GetText(wsExtraItem, std::size(wsExtraItem));
 
@@ -980,7 +1027,7 @@ int CNewUIMuHelper::GetIntFromTextInput(wchar_t* pwsInput)
 {
     wchar_t* end;
 
-    int value = static_cast<int>(wcstol(pwsInput, &end, 10));  // Base 10
+    int value = static_cast<int>(wcstol(pwsInput, &end, 10)); // Base 10
 
     if (*end != L'\0')
     {
@@ -997,6 +1044,7 @@ void CNewUIMuHelper::Reset()
     _TempConfig.iMaxSecondsAway = 10;
     _TempConfig.bLongRangeCounterAttack = false;
     _TempConfig.bReturnToOriginalPosition = true;
+    _TempConfig.bRandomMoveWhenIdle = false;
 
     _TempConfig.aiSkill.fill(0);
     _TempConfig.bUseCombo = false;
@@ -1090,7 +1138,8 @@ void CNewUIMuHelper::ApplyConfig()
     m_CheckBoxList[CHECKBOX_ID_USE_PET].box->RegisterBoxState(_TempConfig.bUseDarkRaven);
     m_CheckBoxList[CHECKBOX_ID_DR_ATTACK_CEASE].box->RegisterBoxState(_TempConfig.iDarkRavenMode == PET_ATTACK_CEASE);
     m_CheckBoxList[CHECKBOX_ID_DR_ATTACK_AUTO].box->RegisterBoxState(_TempConfig.iDarkRavenMode == PET_ATTACK_AUTO);
-    m_CheckBoxList[CHECKBOX_ID_DR_ATTACK_TOGETHER].box->RegisterBoxState(_TempConfig.iDarkRavenMode == PET_ATTACK_TOGETHER);
+    m_CheckBoxList[CHECKBOX_ID_DR_ATTACK_TOGETHER].box->RegisterBoxState(_TempConfig.iDarkRavenMode ==
+                                                                         PET_ATTACK_TOGETHER);
 
     m_CheckBoxList[CHECKBOX_ID_REPAIR_ITEM].box->RegisterBoxState(_TempConfig.bRepairItem);
     m_CheckBoxList[CHECKBOX_ID_PICK_ALL].box->RegisterBoxState(_TempConfig.bPickAllItems);
@@ -1105,6 +1154,7 @@ void CNewUIMuHelper::ApplyConfig()
     m_CheckBoxList[CHECKBOX_ID_AUTO_ACCEPT_GUILD].box->RegisterBoxState(_TempConfig.bAutoAcceptGuild);
     m_CheckBoxList[CHECKBOX_ID_AUTO_DEFEND].box->RegisterBoxState(_TempConfig.bUseSelfDefense);
     m_CheckBoxList[CHECKBOX_ID_FALLBACK_BASIC_ATTACK].box->RegisterBoxState(_TempConfig.bFallbackBasicAttack);
+    m_CheckBoxList[CHECKBOX_ID_RANDOM_MOVE].box->RegisterBoxState(_TempConfig.bRandomMoveWhenIdle);
 
     m_ItemFilter.Clear();
     for (const auto& item : _TempConfig.aExtraItems)
@@ -1183,7 +1233,8 @@ bool CNewUIMuHelper::Render()
     RenderImage(IMAGE_BASE_WINDOW_BACK, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), float(WINDOW_HEIGHT));
     RenderImage(IMAGE_BASE_WINDOW_TOP, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), 64.f);
     RenderImage(IMAGE_BASE_WINDOW_LEFT, m_Pos.x, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
-    RenderImage(IMAGE_BASE_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
+    RenderImage(IMAGE_BASE_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f,
+                float(WINDOW_HEIGHT) - 64.f - 45.f);
     RenderImage(IMAGE_BASE_WINDOW_BOTTOM, m_Pos.x, m_Pos.y + float(WINDOW_HEIGHT) - 45.f, float(WINDOW_WIDTH), 45.f);
 
     g_pRenderText->SetFont(g_hFontBold);
@@ -1195,10 +1246,12 @@ bool CNewUIMuHelper::Render()
         RenderBack(m_Pos.x + 12, m_Pos.y + 340, 165, 46);
 
         g_pRenderText->SetFont(g_hFont);
-        g_pRenderText->RenderText(m_Pos.x + 20, m_Pos.y + 347, I18N::Game::UsedExtensionFunction, 0, 0, RT3_SORT_CENTER);
+        g_pRenderText->RenderText(m_Pos.x + 20, m_Pos.y + 347, I18N::Game::UsedExtensionFunction, 0, 0,
+                                  RT3_SORT_CENTER);
 
         g_pRenderText->SetTextColor(0xFF00B4FF);
-        g_pRenderText->RenderText(m_Pos.x + 20, m_Pos.y + 365, I18N::Game::NoExtensionFunctionBeingUsed, 0, 0, RT3_SORT_CENTER);
+        g_pRenderText->RenderText(m_Pos.x + 20, m_Pos.y + 365, I18N::Game::NoExtensionFunctionBeingUsed, 0, 0,
+                                  RT3_SORT_CENTER);
     }
 
     g_pRenderText->SetTextColor(TextColor);
@@ -1213,7 +1266,8 @@ bool CNewUIMuHelper::Render()
         RenderBack(m_Pos.x + 12, m_Pos.y + 147, 165, 195);
         RenderBack(m_Pos.x + 16, m_Pos.y + 235, 158, 75);
 
-        RenderImage(BITMAP_DISTANCE_BEGIN + _TempConfig.iObtainingRange, m_Pos.x + 29, m_Pos.y + 92, 15, 19, 0.f, 0.f, 15.f / 16.f, 19.f / 32.f);
+        RenderImage(BITMAP_DISTANCE_BEGIN + _TempConfig.iObtainingRange, m_Pos.x + 29, m_Pos.y + 92, 15, 19, 0.f, 0.f,
+                    15.f / 16.f, 19.f / 32.f);
 
         m_ItemFilter.Render();
     }
@@ -1228,9 +1282,10 @@ bool CNewUIMuHelper::Render()
         RenderBack(m_Pos.x + 75, m_Pos.y + 73, 102, 50);
         RenderBack(m_Pos.x + 12, m_Pos.y + 120, 165, 39);
         RenderBack(m_Pos.x + 12, m_Pos.y + 156, 165, 135);
-        RenderBack(m_Pos.x + 12, m_Pos.y + 288, 165, 69);
+        RenderBack(m_Pos.x + 16, m_Pos.y + 288, 158, 94);
 
-        RenderImage(BITMAP_DISTANCE_BEGIN + _TempConfig.iHuntingRange, m_Pos.x + 29, m_Pos.y + 92, 15, 19, 0.f, 0.f, 15.f / 16.f, 19.f / 32.f);
+        RenderImage(BITMAP_DISTANCE_BEGIN + _TempConfig.iHuntingRange, m_Pos.x + 29, m_Pos.y + 92, 15, 19, 0.f, 0.f,
+                    15.f / 16.f, 19.f / 32.f);
     }
 
     RenderBoxList();
@@ -1276,10 +1331,14 @@ void CNewUIMuHelper::RenderBack(int x, int y, int width, int height)
 
 void CNewUIMuHelper::LoadImages()
 {
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_RangeMinus.tga", IMAGE_MACROUI_HELPER_RAGEMINUS, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_OptionButton.tga", IMAGE_MACROUI_HELPER_OPTIONBUTTON, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputNumber.tga", IMAGE_MACROUI_HELPER_INPUTNUMBER, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputString.tga", IMAGE_MACROUI_HELPER_INPUTSTRING, GL_LINEAR, GL_CLAMP, 1, 0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_RangeMinus.tga", IMAGE_MACROUI_HELPER_RAGEMINUS, GL_LINEAR, GL_CLAMP, 1,
+               0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_OptionButton.tga", IMAGE_MACROUI_HELPER_OPTIONBUTTON, GL_LINEAR, GL_CLAMP,
+               1, 0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputNumber.tga", IMAGE_MACROUI_HELPER_INPUTNUMBER, GL_LINEAR, GL_CLAMP, 1,
+               0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputString.tga", IMAGE_MACROUI_HELPER_INPUTSTRING, GL_LINEAR, GL_CLAMP, 1,
+               0);
     //--
     LoadBitmap(L"Interface\\InGameShop\\Ingame_Bt03.tga", IMAGE_IGS_BUTTON, GL_LINEAR, GL_CLAMP, 1, 0);
 }
@@ -1320,7 +1379,9 @@ void CNewUIMuHelper::RegisterBtnCharacter(BYTE class_character, int Identifier)
     }
 }
 
-void CNewUIMuHelper::InsertButton(int imgindex, int x, int y, int sx, int sy, bool overflg, bool isimgwidth, bool bClickEffect, bool MoveTxt, const wchar_t* const* btnameSlot, const wchar_t* const* tooltipSlot, int Identifier, int iNumTab)
+void CNewUIMuHelper::InsertButton(int imgindex, int x, int y, int sx, int sy, bool overflg, bool isimgwidth,
+                                  bool bClickEffect, bool MoveTxt, const wchar_t* const* btnameSlot,
+                                  const wchar_t* const* tooltipSlot, int Identifier, int iNumTab)
 {
     CButtonTap cBTN;
     auto* button = new CNewUIButton();
@@ -1328,8 +1389,10 @@ void CNewUIMuHelper::InsertButton(int imgindex, int x, int y, int sx, int sy, bo
     button->ChangeButtonImgState(1, imgindex, overflg, isimgwidth, bClickEffect);
     button->ChangeButtonInfo(x, y, sx, sy);
 
-    if (btnameSlot != nullptr) button->ChangeText(btnameSlot);
-    if (tooltipSlot != nullptr) button->ChangeToolTipText(tooltipSlot, TRUE);
+    if (btnameSlot != nullptr)
+        button->ChangeText(btnameSlot);
+    if (tooltipSlot != nullptr)
+        button->ChangeToolTipText(tooltipSlot, TRUE);
 
     if (MoveTxt)
     {
@@ -1351,7 +1414,8 @@ void CNewUIMuHelper::RenderBtnList()
     {
         CButtonTap* cBTN = &li->second;
 
-        if ((cBTN->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cBTN->iNumTab == m_iCurrentOpenTab || cBTN->iNumTab == -1))
+        if ((cBTN->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cBTN->iNumTab == m_iCurrentOpenTab || cBTN->iNumTab == -1))
         {
             cBTN->btn->Render();
         }
@@ -1366,7 +1430,8 @@ int CNewUIMuHelper::UpdateMouseBtnList()
     {
         CButtonTap* cBTN = &li->second;
 
-        if ((cBTN->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cBTN->iNumTab == m_iCurrentOpenTab || cBTN->iNumTab == -1))
+        if ((cBTN->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cBTN->iNumTab == m_iCurrentOpenTab || cBTN->iNumTab == -1))
         {
             if (cBTN->btn->UpdateMouseEvent())
             {
@@ -1404,7 +1469,8 @@ void CNewUIMuHelper::RegisterCheckBox(int Identifier, CheckBoxTap button)
     m_CheckBoxList.insert(std::pair<int, CheckBoxTap>(Identifier, button));
 }
 
-void CNewUIMuHelper::InsertCheckBox(int imgindex, int x, int y, int sx, int sy, bool overflg, const wchar_t* const* btnameSlot, int Identifier, int iNumTab)
+void CNewUIMuHelper::InsertCheckBox(int imgindex, int x, int y, int sx, int sy, bool overflg,
+                                    const wchar_t* const* btnameSlot, int Identifier, int iNumTab)
 {
     CheckBoxTap cBOX;
 
@@ -1413,7 +1479,8 @@ void CNewUIMuHelper::InsertCheckBox(int imgindex, int x, int y, int sx, int sy, 
     cbox->CheckBoxImgState(imgindex);
     cbox->CheckBoxInfo(x, y, sx, sy);
 
-    if (btnameSlot != nullptr) cbox->ChangeText(btnameSlot);
+    if (btnameSlot != nullptr)
+        cbox->ChangeText(btnameSlot);
     cbox->RegisterBoxState(overflg);
 
     cBOX.box = cbox;
@@ -1431,7 +1498,8 @@ void CNewUIMuHelper::RenderBoxList()
     {
         CheckBoxTap* cBOX = &li->second;
 
-        if ((cBOX->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cBOX->iNumTab == m_iCurrentOpenTab || cBOX->iNumTab == -1))
+        if ((cBOX->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cBOX->iNumTab == m_iCurrentOpenTab || cBOX->iNumTab == -1))
         {
             cBOX->box->Render();
         }
@@ -1446,7 +1514,8 @@ int CNewUIMuHelper::UpdateMouseBoxList()
     {
         CheckBoxTap* cBOX = &li->second;
 
-        if ((cBOX->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cBOX->iNumTab == m_iCurrentOpenTab || cBOX->iNumTab == -1))
+        if ((cBOX->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cBOX->iNumTab == m_iCurrentOpenTab || cBOX->iNumTab == -1))
         {
             if (cBOX->box->UpdateMouseEvent())
             {
@@ -1468,7 +1537,8 @@ void CNewUIMuHelper::RenderIconList()
     {
         cTexture* cImage = &li->second;
 
-        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
+        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
         {
             RenderImage(cImage->s_ImgIndex, cImage->m_Pos.x, cImage->m_Pos.y, cImage->m_Size.x, cImage->m_Size.y);
 
@@ -1491,7 +1561,8 @@ int CNewUIMuHelper::UpdateMouseIconList()
     {
         cTexture* cImage = &li->second;
 
-        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
+        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
         {
             if (CheckMouseIn(cImage->m_Pos.x, cImage->m_Pos.y, cImage->m_Size.x, cImage->m_Size.y))
             {
@@ -1554,7 +1625,8 @@ void CNewUIMuHelper::RenderTextList()
     {
         cTextName* cImage = &li->second;
 
-        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) && (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
+        if ((cImage->class_character[gCharacterManager.GetBaseClass(Hero->Class)]) &&
+            (cImage->iNumTab == m_iCurrentOpenTab || cImage->iNumTab == -1))
         {
             g_pRenderText->RenderText(cImage->m_Pos.x, cImage->m_Pos.y, cImage->m_Name.c_str());
         }
@@ -1607,7 +1679,8 @@ void CNewUIMuHelper::AssignSkill(int iSkill)
             m_aiSelectedSkills[m_iSelectedSkillSlot] = iSkill;
             ApplyConfigFromSkillSlot(m_iSelectedSkillSlot, iSkill);
 
-            g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Assign m_aiSelectedSkills[%d] = %d", m_iSelectedSkillSlot, iSkill);
+            g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Assign m_aiSelectedSkills[%d] = %d", m_iSelectedSkillSlot,
+                                  iSkill);
         }
         else
         {
@@ -1634,7 +1707,8 @@ int CNewUIMuHelper::GetSkillIndex(int iSkill)
 {
     auto it = std::find(m_aiSelectedSkills.begin(), m_aiSelectedSkills.end(), iSkill);
 
-    if (it != m_aiSelectedSkills.end()) {
+    if (it != m_aiSelectedSkills.end())
+    {
         return std::distance(m_aiSelectedSkills.begin(), it);
     }
 
@@ -1784,24 +1858,29 @@ void CNewUIMuHelper::RenderSkillIcon(int skill, float x, float y, float width, f
     case KOS_COMMAND:
     {
         iTextureIndex = IMAGE_COMMAND;
-    }break;
+    }
+    break;
     case KOS_SKILL1:
     {
         iTextureIndex = IMAGE_SKILL1;
-    }break;
+    }
+    break;
     case KOS_SKILL2:
     {
         iTextureIndex = IMAGE_SKILL2;
-    }break;
+    }
+    break;
     case KOS_SKILL3:
     {
         iTextureIndex = IMAGE_SKILL3;
-    }break;
+    }
+    break;
     }
 
     if (skill >= AT_SKILL_MASTER_BEGIN)
     {
-        RenderImage(BITMAP_INTERFACE_MASTER_BEGIN + 2, x, y, width, height, (20.f / 512.f) * (Skill_Icon % 25), ((28.f / 512.f) * ((Skill_Icon / 25))), 20.f / 512.f, 28.f / 512.f);
+        RenderImage(BITMAP_INTERFACE_MASTER_BEGIN + 2, x, y, width, height, (20.f / 512.f) * (Skill_Icon % 25),
+                    ((28.f / 512.f) * ((Skill_Icon / 25))), 20.f / 512.f, 28.f / 512.f);
     }
     else if (iTextureIndex != 0)
     {
@@ -1819,7 +1898,6 @@ CNewUIMuHelperSkillList::~CNewUIMuHelperSkillList()
 {
     Release();
 }
-
 
 bool CNewUIMuHelperSkillList::Create(CNewUIManager* pNewUIMng, CNewUI3DRenderMng* pNewUI3DRenderMng)
 {
@@ -1920,7 +1998,7 @@ bool CNewUIMuHelperSkillList::UpdateKeyEvent()
             g_pNewUISystem->Hide(INTERFACE_MUHELPER_SKILL_LIST);
             SetFocus(g_hWnd);
             CUITextInputBox::ReleaseFocus();
-            //PlayBuffer(SOUND_CLICK01);
+            // PlayBuffer(SOUND_CLICK01);
 
             return false;
         }
@@ -1949,8 +2027,8 @@ void CNewUIMuHelperSkillList::PrepareSkillsToRender()
                     continue;
                 }
 
-                if ((m_bFilterByAttackSkills && IsAttackSkill(iSkillType))
-                    || (m_bFilterByBuffSkills && IsBuffSkill(iSkillType)))
+                if ((m_bFilterByAttackSkills && IsAttackSkill(iSkillType)) ||
+                    (m_bFilterByBuffSkills && IsBuffSkill(iSkillType)))
                 {
                     m_aiSkillsToRender.push_back(iSkillType);
                 }
@@ -1966,7 +2044,7 @@ bool CNewUIMuHelperSkillList::Update()
 
 bool CNewUIMuHelperSkillList::Render()
 {
-    float scale = 1.0f; // 
+    float scale = 1.0f; //
     float boxWidth = 32.f * scale;
     float boxHeight = 38.f * scale;
     float iconWidth = 20.f * scale;
@@ -1993,17 +2071,16 @@ bool CNewUIMuHelperSkillList::Render()
 
         float x = startX - col * boxWidth; // left to right
         float y = skillCountEven           // bounce up and down from center
-            ? startY - offset * boxHeight
-            : startY + offset * boxHeight;
+                      ? startY - offset * boxHeight
+                      : startY + offset * boxHeight;
 
         RenderImage(IMAGE_SKILLBOX, x, y, boxWidth, boxHeight);
         RenderSkillIcon(iSkillType, x + iconOffsetX, y + iconOffsetY, iconWidth, iconHeight);
 
-        m_skillIconMap.insert_or_assign(iSkillType, cSkillIcon{
-            iSkillType,
-            { static_cast<LONG>(x), static_cast<LONG>(y) },
-            { static_cast<LONG>(boxWidth), static_cast<LONG>(boxHeight) }
-            });
+        m_skillIconMap.insert_or_assign(iSkillType,
+                                        cSkillIcon{iSkillType,
+                                                   {static_cast<LONG>(x), static_cast<LONG>(y)},
+                                                   {static_cast<LONG>(boxWidth), static_cast<LONG>(boxHeight)}});
     }
 
     if (m_bRenderSkillInfo && m_pNewUI3DRenderMng)
@@ -2168,24 +2245,29 @@ void CNewUIMuHelperSkillList::RenderSkillIcon(int iSkillType, float x, float y, 
     case KOS_COMMAND:
     {
         iTextureId = IMAGE_COMMAND;
-    }break;
+    }
+    break;
     case KOS_SKILL1:
     {
         iTextureId = IMAGE_SKILL1;
-    }break;
+    }
+    break;
     case KOS_SKILL2:
     {
         iTextureId = IMAGE_SKILL2;
-    }break;
+    }
+    break;
     case KOS_SKILL3:
     {
         iTextureId = IMAGE_SKILL3;
-    }break;
+    }
+    break;
     }
 
     if (iSkillType >= AT_SKILL_MASTER_BEGIN)
     {
-        RenderImage(BITMAP_INTERFACE_MASTER_BEGIN + 2, x, y, width, height, (20.f / 512.f) * (Skill_Icon % 25), ((28.f / 512.f) * ((Skill_Icon / 25))), 20.f / 512.f, 28.f / 512.f);
+        RenderImage(BITMAP_INTERFACE_MASTER_BEGIN + 2, x, y, width, height, (20.f / 512.f) * (Skill_Icon % 25),
+                    ((28.f / 512.f) * ((Skill_Icon / 25))), 20.f / 512.f, 28.f / 512.f);
     }
     else if (iTextureId != 0)
     {
@@ -2404,10 +2486,7 @@ void CNewUIMuHelperExt::InitText()
     m_BuffTimeInput.SetOption(UIOPTION_NUMBERONLY);
 }
 
-void CNewUIMuHelperExt::InitImage()
-{
-
-}
+void CNewUIMuHelperExt::InitImage() {}
 
 void CNewUIMuHelperExt::InitButtons()
 {
@@ -2461,10 +2540,7 @@ void CNewUIMuHelperExt::InitButtons()
     m_BtnClose.ChangeToolTipText(&I18N::Game::Close388, TRUE); // "Close"
 }
 
-void CNewUIMuHelperExt::InitCheckBox()
-{
-
-}
+void CNewUIMuHelperExt::InitCheckBox() {}
 
 bool CNewUIMuHelperExt::Render()
 {
@@ -2479,41 +2555,49 @@ bool CNewUIMuHelperExt::Render()
     RenderImage(IMAGE_BASE_WINDOW_BACK, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), float(WINDOW_HEIGHT));
     RenderImage(IMAGE_BASE_WINDOW_TOP, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), 64.f);
     RenderImage(IMAGE_BASE_WINDOW_LEFT, m_Pos.x, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
-    RenderImage(IMAGE_BASE_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
+    RenderImage(IMAGE_BASE_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f,
+                float(WINDOW_HEIGHT) - 64.f - 45.f);
     RenderImage(IMAGE_BASE_WINDOW_BOTTOM, m_Pos.x, m_Pos.y + float(WINDOW_HEIGHT) - 45.f, float(WINDOW_WIDTH), 45.f);
 
     g_pRenderText->SetFont(g_hFontBold);
 
     if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG_ELF)
     {
-        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0, RT3_SORT_CENTER); // "Auto Recovery"
+        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0,
+                                  RT3_SORT_CENTER);                                  // "Auto Recovery"
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::AutoPotion); // "Auto Potion"
-        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 80, 124.f, 16.f, m_iCurrentPotionThreshold, I18N::Game::HPStatus); // "HP Status"
+        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 80, 124.f, 16.f, m_iCurrentPotionThreshold,
+                      I18N::Game::HPStatus); // "HP Status"
 
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 120, 165, 45, I18N::Game::AutoHeal); // "Auto Heal"
-        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 145, 124.f, 16.f, m_iCurrentHealThreshold, I18N::Game::HPStatus); // "HP Status"
+        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 145, 124.f, 16.f, m_iCurrentHealThreshold,
+                      I18N::Game::HPStatus); // "HP Status"
     }
     else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG_SUMMY)
     {
-        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0, RT3_SORT_CENTER); // "Auto Recovery"
+        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0,
+                                  RT3_SORT_CENTER);                                  // "Auto Recovery"
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::AutoPotion); // "Auto Potion"
-        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 80, 124.f, 16.f, m_iCurrentPotionThreshold, I18N::Game::HPStatus); // "HP Status"
+        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 80, 124.f, 16.f, m_iCurrentPotionThreshold,
+                      I18N::Game::HPStatus); // "HP Status"
 
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 120, 165, 45, I18N::Game::DrainLife); // "Drain Life"
-        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 145, 124.f, 16.f, m_iCurrentHealThreshold, I18N::Game::HPStatus); // "HP Status"
+        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 145, 124.f, 16.f, m_iCurrentHealThreshold,
+                      I18N::Game::HPStatus); // "HP Status"
     }
     else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG)
     {
-        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0, RT3_SORT_CENTER); // "Auto Recovery"
+        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::AutoRecovery, 190, 0,
+                                  RT3_SORT_CENTER);                                  // "Auto Recovery"
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::AutoPotion); // "Auto Potion"
 
         RenderHpLevel(m_Pos.x + 32, m_Pos.y + 80, 124.f, 16.f, m_iCurrentPotionThreshold, I18N::Game::HPStatus);
     }
-    else if (m_iCurrentPage == SUB_PAGE_SKILL2_CONFIG
-        || m_iCurrentPage == SUB_PAGE_SKILL3_CONFIG)
+    else if (m_iCurrentPage == SUB_PAGE_SKILL2_CONFIG || m_iCurrentPage == SUB_PAGE_SKILL3_CONFIG)
     {
-        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::ActivationSkill, 190, 0, RT3_SORT_CENTER); // "Activation Skill"
-        RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::PreCon);  // "Pre-con"
+        g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 13, I18N::Game::ActivationSkill, 190, 0,
+                                  RT3_SORT_CENTER);                              // "Activation Skill"
+        RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::PreCon); // "Pre-con"
         m_BtnPreConHuntRange.Render();
         m_BtnPreConAttacking.Render();
 
@@ -2530,7 +2614,8 @@ bool CNewUIMuHelperExt::Render()
         g_pRenderText->SetTextColor(TextColor);
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 45, I18N::Game::BuffSupport); // Buff Support
         m_BtnPartyDuration.Render();
-        g_pRenderText->RenderText(m_Pos.x + 40, m_Pos.y + 97, I18N::Game::TimeSpaceOfCastingBuff, 124, 0, RT3_SORT_LEFT); // "Time Space of Casting Buff"
+        g_pRenderText->RenderText(m_Pos.x + 40, m_Pos.y + 97, I18N::Game::TimeSpaceOfCastingBuff, 124, 0,
+                                  RT3_SORT_LEFT); // "Time Space of Casting Buff"
         RenderImage(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 125, m_Pos.y + 93, 20, 15);
         m_BuffTimeInput.Render();
         g_pRenderText->RenderText(m_Pos.x + 146, m_Pos.y + 97, L"s", 124, 0, RT3_SORT_LEFT); // "s"
@@ -2541,11 +2626,13 @@ bool CNewUIMuHelperExt::Render()
         g_pRenderText->SetTextColor(TextColor);
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 55, 165, 70, I18N::Game::HealSupport); // Heal Support
         m_BtnPartyHeal.Render();
-        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 100, 124.f, 16.f, m_iCurrentPartyHealThreshold, I18N::Game::HPStatusOfPartyMembers); // "HP Status of Party Members"
+        RenderHpLevel(m_Pos.x + 32, m_Pos.y + 100, 124.f, 16.f, m_iCurrentPartyHealThreshold,
+                      I18N::Game::HPStatusOfPartyMembers); // "HP Status of Party Members"
 
         RenderBackPane(m_Pos.x + 12, m_Pos.y + 145, 165, 45, I18N::Game::BuffSupport); // Buff Support
         m_BtnPartyDuration.Render();
-        g_pRenderText->RenderText(m_Pos.x + 40, m_Pos.y + 187, I18N::Game::TimeSpaceOfCastingBuff, 124, 0, RT3_SORT_LEFT); // "Time Space of Casting Buff"
+        g_pRenderText->RenderText(m_Pos.x + 40, m_Pos.y + 187, I18N::Game::TimeSpaceOfCastingBuff, 124, 0,
+                                  RT3_SORT_LEFT); // "Time Space of Casting Buff"
         RenderImage(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 125, m_Pos.y + 183, 20, 15);
         m_BuffTimeInput.Render();
         g_pRenderText->RenderText(m_Pos.x + 146, m_Pos.y + 187, L"s", 124, 0, RT3_SORT_LEFT); // "s"
@@ -2581,21 +2668,23 @@ void CNewUIMuHelperExt::RenderBackPane(int x, int y, int width, int height, cons
     RenderColorQuadARGB(x + 3.f, y + 2.f + 18.f, width - 7.f, height - 7.f, BackdropColor);
 
     // Top box (tab) without bottom line
-    RenderImage(IMAGE_TABLE_TOP_LEFT, x, y, 14.0, 14.0);                                // Top-left corner of the tab
-    RenderImage(IMAGE_TABLE_TOP_RIGHT, (x + headerWidth) - 14.f, y, 14.0, 14.0);        // Top-right corner of the tab
-    RenderImage(IMAGE_TABLE_TOP_PIXEL, x + 6.f, y, (headerWidth - 12.f), 14.0);         // Top edge of the tab
+    RenderImage(IMAGE_TABLE_TOP_LEFT, x, y, 14.0, 14.0);                                 // Top-left corner of the tab
+    RenderImage(IMAGE_TABLE_TOP_RIGHT, (x + headerWidth) - 14.f, y, 14.0, 14.0);         // Top-right corner of the tab
+    RenderImage(IMAGE_TABLE_TOP_PIXEL, x + 6.f, y, (headerWidth - 12.f), 14.0);          // Top edge of the tab
     RenderImage(IMAGE_TABLE_RIGHT_PIXEL, (x + headerWidth) - 14.f, y + 6.f, 14.0, 14.0); // Right edge of the tab
 
     // Bottom box without top line
-    RenderImage(IMAGE_TABLE_TOP_RIGHT, (x + width) - 14.f, y + 18.f, 14.0, 14.0);       // Main box top-right corner
-    RenderImage(IMAGE_TABLE_BOTTOM_LEFT, x, (y + height + 18.f) - 14.f, 14.0, 14.0);    // Main box bottom-left corner
-    RenderImage(IMAGE_TABLE_BOTTOM_RIGHT, (x + width) - 14.f, (y + height + 18.f) - 14.f, 14.0, 14.0); // Main box bottom-right corner
-    RenderImage(IMAGE_TABLE_TOP_PIXEL, x + 2.f, y + 18.f, (width - 12.f), 14.0);        // Top edge of main box
+    RenderImage(IMAGE_TABLE_TOP_RIGHT, (x + width) - 14.f, y + 18.f, 14.0, 14.0);    // Main box top-right corner
+    RenderImage(IMAGE_TABLE_BOTTOM_LEFT, x, (y + height + 18.f) - 14.f, 14.0, 14.0); // Main box bottom-left corner
+    RenderImage(IMAGE_TABLE_BOTTOM_RIGHT, (x + width) - 14.f, (y + height + 18.f) - 14.f, 14.0,
+                14.0);                                                           // Main box bottom-right corner
+    RenderImage(IMAGE_TABLE_TOP_PIXEL, x + 2.f, y + 18.f, (width - 12.f), 14.0); // Top edge of main box
     RenderImage(IMAGE_TABLE_RIGHT_PIXEL, (x + width) - 14.f, y + 24.f, 14.0, (height - 14.f)); // Right edge of main box
-    RenderImage(IMAGE_TABLE_BOTTOM_PIXEL, x + 6.f, (y + height + 18.f) - 14.f, (width - 12.f), 14.0); // Bottom edge of main box
+    RenderImage(IMAGE_TABLE_BOTTOM_PIXEL, x + 6.f, (y + height + 18.f) - 14.f, (width - 12.f),
+                14.0); // Bottom edge of main box
 
     // Left line to connect top box and bottom box
-    RenderImage(IMAGE_TABLE_LEFT_PIXEL, x, y + 6.f, 14.0, (height));             // Connecting left edge
+    RenderImage(IMAGE_TABLE_LEFT_PIXEL, x, y + 6.f, 14.0, (height)); // Connecting left edge
 
     // Header inside top box
     g_pRenderText->SetTextColor(TextColor);
@@ -2605,10 +2694,14 @@ void CNewUIMuHelperExt::RenderBackPane(int x, int y, int width, int height, cons
 
 void CNewUIMuHelperExt::LoadImages()
 {
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_RangeMinus.tga", IMAGE_MACROUI_HELPER_RAGEMINUS, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_OptionButton.tga", IMAGE_MACROUI_HELPER_OPTIONBUTTON, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputNumber.tga", IMAGE_MACROUI_HELPER_INPUTNUMBER, GL_LINEAR, GL_CLAMP, 1, 0);
-    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputString.tga", IMAGE_MACROUI_HELPER_INPUTSTRING, GL_LINEAR, GL_CLAMP, 1, 0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_RangeMinus.tga", IMAGE_MACROUI_HELPER_RAGEMINUS, GL_LINEAR, GL_CLAMP, 1,
+               0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_OptionButton.tga", IMAGE_MACROUI_HELPER_OPTIONBUTTON, GL_LINEAR, GL_CLAMP,
+               1, 0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputNumber.tga", IMAGE_MACROUI_HELPER_INPUTNUMBER, GL_LINEAR, GL_CLAMP, 1,
+               0);
+    LoadBitmap(L"Interface\\MacroUI\\MacroUI_InputString.tga", IMAGE_MACROUI_HELPER_INPUTSTRING, GL_LINEAR, GL_CLAMP, 1,
+               0);
     //--
     LoadBitmap(L"Interface\\InGameShop\\Ingame_Bt03.tga", IMAGE_IGS_BUTTON, GL_LINEAR, GL_CLAMP, 1, 0);
 }
@@ -2638,8 +2731,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other precondition bits and set the bit for "Hunt Range"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_PRECON_CLEAR) |
-                    ON_MOBS_NEARBY;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_PRECON_CLEAR) | ON_MOBS_NEARBY;
             }
             else if (m_BtnPreConAttacking.UpdateMouseEvent())
             {
@@ -2648,8 +2740,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other precondition bits and set the bit for "Attacking"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_PRECON_CLEAR) |
-                    ON_MOBS_ATTACKING;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_PRECON_CLEAR) | ON_MOBS_ATTACKING;
             }
             else if (m_BtnSubConMoreThanTwo.UpdateMouseEvent())
             {
@@ -2660,8 +2751,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other bits and set the bit for "More Than Two Mobs"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) |
-                    ON_MORE_THAN_TWO_MOBS;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) | ON_MORE_THAN_TWO_MOBS;
             }
             else if (m_BtnSubConMoreThanThree.UpdateMouseEvent())
             {
@@ -2672,8 +2762,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other bits and set the bit for "More Than Three Mobs"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) |
-                    ON_MORE_THAN_THREE_MOBS;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) | ON_MORE_THAN_THREE_MOBS;
             }
             else if (m_BtnSubConMoreThanFour.UpdateMouseEvent())
             {
@@ -2684,8 +2773,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other bits and set the bit for "More Than Four Mobs"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) |
-                    ON_MORE_THAN_FOUR_MOBS;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) | ON_MORE_THAN_FOUR_MOBS;
             }
             else if (m_BtnSubConMoreThanFive.UpdateMouseEvent())
             {
@@ -2696,8 +2784,7 @@ bool CNewUIMuHelperExt::Update()
 
                 // Clear other bits and set the bit for "More Than Five Mobs"
                 _TempConfig.aiSkillCondition[iSkillIndex] =
-                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) |
-                    ON_MORE_THAN_FIVE_MOBS;
+                    (_TempConfig.aiSkillCondition[iSkillIndex] & MUHELPER_SKILL_SUBCON_CLEAR) | ON_MORE_THAN_FIVE_MOBS;
             }
         }
 
@@ -2883,7 +2970,7 @@ bool CNewUIMuHelperExt::UpdateKeyEvent()
         if (IsPress(VK_ESCAPE) == true)
         {
             g_pNewUISystem->Hide(INTERFACE_MUHELPER_EXT);
-            //PlayBuffer(SOUND_CLICK01);
+            // PlayBuffer(SOUND_CLICK01);
 
             return false;
         }
@@ -2923,7 +3010,8 @@ void CNewUIMuHelperExt::Toggle(int iPageId)
         m_BtnSubConMoreThanFour.RegisterBoxState(_TempConfig.aiSkillCondition[iSkillIndex] & ON_MORE_THAN_FOUR_MOBS);
         m_BtnSubConMoreThanFive.RegisterBoxState(_TempConfig.aiSkillCondition[iSkillIndex] & ON_MORE_THAN_FIVE_MOBS);
     }
-    else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_ELF || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_SUMMY)
+    else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_ELF ||
+             m_iCurrentPage == SUB_PAGE_POTION_CONFIG_SUMMY)
     {
         m_iCurrentPotionThreshold = _TempConfig.iPotionThreshold / 10;
         m_iCurrentHealThreshold = _TempConfig.iHealThreshold / 10;
@@ -2934,7 +3022,7 @@ void CNewUIMuHelperExt::Toggle(int iPageId)
         m_BtnPartyDuration.RegisterBoxState(_TempConfig.bBuffDurationParty);
         m_iCurrentPartyHealThreshold = _TempConfig.iHealPartyThreshold / 10;
 
-        wchar_t wsBuffTime[MAX_NUMBER_DIGITS + 1] = { 0 };
+        wchar_t wsBuffTime[MAX_NUMBER_DIGITS + 1] = {0};
         std::swprintf(wsBuffTime, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.iBuffCastInterval);
         m_BuffTimeInput.SetText(wsBuffTime);
         m_BuffTimeInput.SetPosition(m_Pos.x + 127, m_Pos.y + 97);
@@ -2947,7 +3035,7 @@ void CNewUIMuHelperExt::Toggle(int iPageId)
         m_BtnPartyDuration.RegisterBoxState(_TempConfig.bBuffDurationParty);
         m_iCurrentPartyHealThreshold = _TempConfig.iHealPartyThreshold / 10;
 
-        wchar_t wsBuffTime[MAX_NUMBER_DIGITS + 1] = { 0 };
+        wchar_t wsBuffTime[MAX_NUMBER_DIGITS + 1] = {0};
         std::swprintf(wsBuffTime, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.iBuffCastInterval);
         m_BuffTimeInput.SetText(wsBuffTime);
         m_BuffTimeInput.SetPosition(m_Pos.x + 127, m_Pos.y + 187);
@@ -2989,8 +3077,7 @@ void CNewUIMuHelperExt::InitConfig()
 // Called by the "Initialization" button from the sub page
 void CNewUIMuHelperExt::Reset()
 {
-    if (m_iCurrentPage == SUB_PAGE_SKILL2_CONFIG 
-        || m_iCurrentPage == SUB_PAGE_SKILL3_CONFIG)
+    if (m_iCurrentPage == SUB_PAGE_SKILL2_CONFIG || m_iCurrentPage == SUB_PAGE_SKILL3_CONFIG)
     {
         int iSkillIndex = m_iCurrentPage == SUB_PAGE_SKILL2_CONFIG ? 1 : 2;
 
@@ -3003,9 +3090,8 @@ void CNewUIMuHelperExt::Reset()
         m_BtnSubConMoreThanFour.RegisterBoxState(_TempConfig.aiSkillCondition[iSkillIndex] & ON_MORE_THAN_FOUR_MOBS);
         m_BtnSubConMoreThanFive.RegisterBoxState(_TempConfig.aiSkillCondition[iSkillIndex] & ON_MORE_THAN_FIVE_MOBS);
     }
-    else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG 
-        || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_ELF 
-        || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_SUMMY)
+    else if (m_iCurrentPage == SUB_PAGE_POTION_CONFIG || m_iCurrentPage == SUB_PAGE_POTION_CONFIG_ELF ||
+             m_iCurrentPage == SUB_PAGE_POTION_CONFIG_SUMMY)
     {
         _TempConfig.iPotionThreshold = 0;
         _TempConfig.iHealThreshold = 0;

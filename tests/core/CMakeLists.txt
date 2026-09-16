@@ -84,6 +84,14 @@ mu_add_test(
         test_cpu_usage_math.cpp
 )
 
+mu_add_test(
+    NAME test_muhelper_config
+    SOURCES
+        test_muhelper_config.cpp
+    LINK_LIBS
+        MuClient
+)
+
 add_test(
     NAME msvc_runtime_dll_staging_contract
     COMMAND "${CMAKE_COMMAND}"
