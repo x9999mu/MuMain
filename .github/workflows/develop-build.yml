@@ -150,9 +150,9 @@ jobs:
           Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
           Compress-Archive -Path "$env:RUNTIME_DIR/*" -DestinationPath $archive -CompressionLevel Optimal
           $size = (Get-Item -LiteralPath $archive).Length
-          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
-          # game data never reached the runtime directory.
-          if ($size -lt 512MB) {
+          # The tracked game data compresses to ~440 MiB and the no-data runtime
+          # to ~16 MiB, so a floor here only catches an empty runtime directory.
+          if ($size -lt 64MB) {
             throw "Suspiciously small archive ($size bytes): $archive"
           }
           Write-Host ("Packaged {0:N1} MiB" -f ($size / 1MB))
@@ -251,9 +251,9 @@ jobs:
           rm -f "$archive"
           (cd "$RUNTIME_DIR" && zip -qr "$archive" .)
           size=$(stat -c '%s' "$archive")
-          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
-          # game data never reached the runtime directory.
-          if [ "$size" -lt 536870912 ]; then
+          # The tracked game data compresses to ~440 MiB and the no-data runtime
+          # to ~16 MiB, so a floor here only catches an empty runtime directory.
+          if [ "$size" -lt 67108864 ]; then
             echo "Suspiciously small archive ($size bytes): $archive" >&2
             exit 1
           fi
@@ -346,9 +346,9 @@ jobs:
           # preserves the executable bit and the .app layout.
           (cd "$BUNDLE_DIR" && zip -qry "$archive" Main.app)
           size=$(stat -f '%z' "$archive")
-          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
-          # game data never reached the runtime directory.
-          if [ "$size" -lt 536870912 ]; then
+          # The tracked game data compresses to ~440 MiB and the no-data runtime
+          # to ~16 MiB, so a floor here only catches an empty runtime directory.
+          if [ "$size" -lt 67108864 ]; then
             echo "Suspiciously small archive ($size bytes): $archive" >&2
             exit 1
           fi
