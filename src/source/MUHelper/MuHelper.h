@@ -50,6 +50,7 @@ public:
 
 private:
     void WorkLoop(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
+    void CombatTick();
     void Work();
     int ActivatePet();
     int Buff();
@@ -112,6 +113,7 @@ private:
     bool m_bTimerActivatedBuffOngoing;
     bool m_bPetActivated;
     int m_iTotalCost;
+    bool m_bAttackReady;
 };
 
 extern CMuHelper g_MuHelper;

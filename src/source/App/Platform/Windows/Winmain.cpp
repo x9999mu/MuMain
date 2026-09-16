@@ -1677,9 +1677,9 @@ void ReinitializeTextRenderer(FontSizes sizes)
 {
     g_pRenderText->Release();
     const std::string selectedFamily = WideToUtf8(GameConfig::GetInstance().GetFontSelection());
-    const bool fontsReloaded = mu::GetRenderer().ReloadTtfFonts(selectedFamily, static_cast<float>(sizes.normal),
-                                                                static_cast<float>(sizes.big),
-                                                                static_cast<float>(sizes.fixed));
+    const bool fontsReloaded =
+        mu::GetRenderer().ReloadTtfFonts(selectedFamily, static_cast<float>(sizes.normal),
+                                         static_cast<float>(sizes.big), static_cast<float>(sizes.fixed));
     if (!fontsReloaded)
         mu::log::Get("render")->error("SDL_ttf -- keeping the previous font set after reload failure");
     const bool textCreated = g_pRenderText->Create(g_hDC);
@@ -2025,8 +2025,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int nC
     const std::string selectedFontFamily = WideToUtf8(GameConfig::GetInstance().GetFontSelection());
     const FontSizes initialFontSizes = CalculateFontSizes();
     if (!mu::InitSDLGpuRenderer(g_sdlWindow, selectedFontFamily, static_cast<float>(initialFontSizes.normal),
-                                static_cast<float>(initialFontSizes.big),
-                                static_cast<float>(initialFontSizes.fixed)))
+                                static_cast<float>(initialFontSizes.big), static_cast<float>(initialFontSizes.fixed)))
     {
         g_ErrorReport.Write(L"SDL_gpu renderer init failed.\r\n");
         ShutdownRendererWindow();
@@ -2149,10 +2148,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int nC
         SetEffectVolumeLevel(value);
     }
 
+    // A zero interval runs once per frame; ExecuteSkill owns the skill's actual cadence.
+    constexpr unsigned helperAttackIntervalMs = 0;
     auto& timers = Core::Time::FrameTimerScheduler::Instance();
     timers.SetRepeating(HACK_TIMER, 20 * 1000, [] { CheckHack(); });
     timers.SetRepeating(MUHELPER_TIMER, 250 /* ms */,
                         [] { MUHelper::CMuHelper::TimerProc(nullptr, 0, MUHELPER_TIMER, 0); });
+    timers.SetRepeating(MUHELPER_ATTACK_TIMER, helperAttackIntervalMs,
+                        [] { MUHelper::CMuHelper::TimerProc(nullptr, 0, MUHELPER_ATTACK_TIMER, 0); });
 
     srand((unsigned)time(nullptr));
 

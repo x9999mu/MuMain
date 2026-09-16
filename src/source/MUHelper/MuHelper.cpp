@@ -44,6 +44,12 @@ CMuHelper g_MuHelper;
 
 void CALLBACK CMuHelper::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
+    if (idEvent == MUHELPER_ATTACK_TIMER)
+    {
+        g_MuHelper.CombatTick();
+        return;
+    }
+
     g_MuHelper.WorkLoop(hwnd, uMsg, idEvent, dwTime);
 }
 
@@ -123,6 +129,7 @@ void CMuHelper::Start()
     m_bPetActivated = false;
 
     m_iLoopCounter = 0;
+    m_bAttackReady = false;
 
     m_bActive = true;
     g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Started");
@@ -131,6 +138,7 @@ void CMuHelper::Start()
 void CMuHelper::Stop()
 {
     m_bActive = false;
+    m_bAttackReady = false;
     g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Stopped");
 }
 
@@ -167,10 +175,22 @@ void CMuHelper::WorkLoop(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
     }
 }
 
+void CMuHelper::CombatTick()
+{
+    if (!m_bActive || Hero->SafeZone || !m_bAttackReady)
+    {
+        return;
+    }
+
+    Attack();
+}
+
 void CMuHelper::Work()
 {
     try
     {
+        m_bAttackReady = false;
+
         if (!ActivatePet())
         {
             return;
@@ -196,12 +216,13 @@ void CMuHelper::Work()
             return;
         }
 
-        Attack();
+        m_bAttackReady = true;
 
         RepairEquipments();
     }
     catch (...)
     {
+        m_bAttackReady = false;
         g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Exception occurred. Ignoring...");
     }
 }
@@ -889,12 +910,6 @@ int CMuHelper::SimulateAttack(ActionSkillType iSkill)
 
 int CMuHelper::SimulateSkill(ActionSkillType iSkill, bool bTargetRequired, int iTarget)
 {
-    // Let the current swing finish before issuing another action, so the
-    // cadence tracks AttackSpeed instead of the fixed helper timer.
-    if (IsHeroSwingInProgress())
-    {
-        return 0;
-    }
 
     g_MovementSkill.m_iSkill = iSkill;
     g_MovementSkill.m_bMagic = true;
