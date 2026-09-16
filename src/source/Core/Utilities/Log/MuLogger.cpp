@@ -9,6 +9,7 @@
 
 #include <spdlog/sinks/dist_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace mu::log
 {
@@ -24,6 +25,7 @@ struct LoggerState
     std::shared_ptr<spdlog::sinks::dist_sink_mt> sink = std::make_shared<spdlog::sinks::dist_sink_mt>();
     bool sinksInitialized = false;
     bool explicitlyInitialized = false;
+    std::string sinkFailureReason;
 };
 
 LoggerState& State()
@@ -42,14 +44,30 @@ std::shared_ptr<spdlog::logger> CreateLogger(LoggerState& state, const std::stri
     return logger;
 }
 
-void ConfigureSinks(LoggerState& state, const std::filesystem::path& directory)
+// Returns false when the log file could not be opened and the console sink was
+// used instead. Not being able to write a log must never take the client down:
+// macOS App Translocation mounts a quarantined unsigned .app read-only, and
+// installed locations (e.g. /Applications, Program Files) can be read-only too.
+bool ConfigureSinks(LoggerState& state, const std::filesystem::path& directory)
 {
     std::vector<spdlog::sink_ptr> sinks;
-    sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>((directory / "MuError.log").string(),
-                                                                           5 * 1024 * 1024, 3));
+    bool fileLogging = true;
+    try
+    {
+        sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>((directory / "MuError.log").string(),
+                                                                               5 * 1024 * 1024, 3));
+    }
+    catch (const spdlog::spdlog_ex& error)
+    {
+        fileLogging = false;
+        state.sinkFailureReason = error.what();
+        sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
+    }
+
     state.sink->flush();
     state.sink->set_sinks(std::move(sinks));
     state.sinksInitialized = true;
+    return fileLogging;
 }
 } // namespace
 
@@ -64,12 +82,19 @@ void Init(const std::filesystem::path& logDirectory)
     std::error_code error;
     std::filesystem::create_directories(directory, error);
 
-    ConfigureSinks(state, directory);
+    const bool fileLogging = ConfigureSinks(state, directory);
 
     for (const char* name : kLoggerNames)
     {
         if (!state.loggers.contains(name))
             CreateLogger(state, name);
+    }
+
+    if (!fileLogging)
+    {
+        if (const auto core = state.loggers.find("core"); core != state.loggers.end())
+            core->second->warn("File logging disabled ({}); logs go to the console and '{}' stays untouched",
+                               state.sinkFailureReason, (directory / "MuError.log").string());
     }
 
     state.explicitlyInitialized = true;

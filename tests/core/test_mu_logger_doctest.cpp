@@ -154,3 +154,27 @@ TEST_CASE("logger writes to MuError.log without console output")
     CHECK(consoleOutput.empty());
     std::filesystem::remove_all(directory);
 }
+
+TEST_CASE("logger survives an unwritable log directory")
+{
+    // A regular file where the directory should be: portable across platforms
+    // (no chmod) and the same shape as the macOS read-only .app case that used
+    // to abort the client before its window appeared.
+    const auto blocker = TestDirectory("mu_logger_blocked");
+    std::filesystem::remove_all(blocker);
+    {
+        std::ofstream file(blocker);
+        file << "blocker";
+    }
+    const auto unwritableDirectory = blocker / "runtime";
+
+    mu::log::Init(unwritableDirectory);
+    const auto logger = mu::log::Get("core");
+    REQUIRE(logger != nullptr);
+    MU_LOG_ERROR(logger, "unwritable directory self-check");
+    logger->flush();
+    mu::log::Shutdown();
+
+    CHECK_FALSE(std::filesystem::exists(unwritableDirectory));
+    std::filesystem::remove_all(blocker);
+}
