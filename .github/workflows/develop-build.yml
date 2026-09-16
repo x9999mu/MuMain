@@ -1,8 +1,9 @@
 name: Develop Build
 
-# Rolling build check for the develop branch: compile the client for Windows,
-# Linux, and macOS, bake the develop server address into config.ini, and upload
-# one zip per platform. No tests, no version bump, no release - those stay in
+# Rolling build for the develop branch: compile the client for Windows, Linux,
+# and macOS, bake the develop server address into config.ini, and upload one zip
+# per platform. Each zip bundles the game data (Data/ and fonts/), so a download
+# is directly playable. No tests, no version bump, no release - those stay in
 # ci.yml on main.
 on:
   push:
@@ -118,6 +119,12 @@ jobs:
           rm -f "$config_path.bak"
           grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
 
+      # The build runs with MU_COPY_RUNTIME_ASSETS=OFF, so the game data is
+      # staged here instead: the uploaded archive has to be playable as is.
+      - name: Bundle game data
+        shell: bash
+        run: cp -R src/bin/Data src/bin/fonts "$RUNTIME_DIR/"
+
       - name: Validate runtime
         shell: bash
         run: |
@@ -125,7 +132,9 @@ jobs:
             "$RUNTIME_DIR/Main.exe" \
             "$RUNTIME_DIR/MUnique.Client.Library.dll" \
             "$RUNTIME_DIR/config.ini" \
-            "$RUNTIME_DIR/shaders"
+            "$RUNTIME_DIR/shaders" \
+            "$RUNTIME_DIR/Data/Dec2.dat" \
+            "$RUNTIME_DIR/fonts/DejaVuSans.ttf"
           do
             if [ ! -e "$path" ]; then
               echo "Missing required runtime path: $path" >&2
@@ -140,7 +149,9 @@ jobs:
           Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
           Compress-Archive -Path "$env:RUNTIME_DIR/*" -DestinationPath $archive -CompressionLevel Optimal
           $size = (Get-Item -LiteralPath $archive).Length
-          if ($size -lt 1MB) {
+          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
+          # game data never reached the runtime directory.
+          if ($size -lt 512MB) {
             throw "Suspiciously small archive ($size bytes): $archive"
           }
           Write-Host ("Packaged {0:N1} MiB" -f ($size / 1MB))
@@ -212,13 +223,20 @@ jobs:
           rm -f "$config_path.bak"
           grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
 
+      # The build runs with MU_COPY_RUNTIME_ASSETS=OFF, so the game data is
+      # staged here instead: the uploaded archive has to be playable as is.
+      - name: Bundle game data
+        run: cp -R src/bin/Data src/bin/fonts "$RUNTIME_DIR/"
+
       - name: Validate runtime
         run: |
           for path in \
             "$RUNTIME_DIR/Main" \
             "$RUNTIME_DIR/MUnique.Client.Library.so" \
             "$RUNTIME_DIR/config.ini" \
-            "$RUNTIME_DIR/shaders"
+            "$RUNTIME_DIR/shaders" \
+            "$RUNTIME_DIR/Data/Dec2.dat" \
+            "$RUNTIME_DIR/fonts/DejaVuSans.ttf"
           do
             if [ ! -e "$path" ]; then
               echo "Missing required runtime path: $path" >&2
@@ -232,7 +250,9 @@ jobs:
           rm -f "$archive"
           (cd "$RUNTIME_DIR" && zip -qr "$archive" .)
           size=$(stat -c '%s' "$archive")
-          if [ "$size" -lt 1048576 ]; then
+          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
+          # game data never reached the runtime directory.
+          if [ "$size" -lt 536870912 ]; then
             echo "Suspiciously small archive ($size bytes): $archive" >&2
             exit 1
           fi
@@ -296,13 +316,20 @@ jobs:
           rm -f "$config_path.bak"
           grep -qx "ServerIP=${DEVELOP_SERVER_IP}" "$config_path"
 
+      # The build runs with MU_COPY_RUNTIME_ASSETS=OFF, so the game data is
+      # staged here instead: the uploaded archive has to be playable as is.
+      - name: Bundle game data
+        run: cp -R src/bin/Data src/bin/fonts "$RUNTIME_DIR/"
+
       - name: Validate runtime
         run: |
           for path in \
             "$RUNTIME_DIR/Main" \
             "$RUNTIME_DIR/MUnique.Client.Library.dylib" \
             "$RUNTIME_DIR/config.ini" \
-            "$RUNTIME_DIR/shaders"
+            "$RUNTIME_DIR/shaders" \
+            "$RUNTIME_DIR/Data/Dec2.dat" \
+            "$RUNTIME_DIR/fonts/DejaVuSans.ttf"
           do
             if [ ! -e "$path" ]; then
               echo "Missing required runtime path: $path" >&2
@@ -318,7 +345,9 @@ jobs:
           # preserves the executable bit and the .app layout.
           (cd "$BUNDLE_DIR" && zip -qry "$archive" Main.app)
           size=$(stat -f '%z' "$archive")
-          if [ "$size" -lt 1048576 ]; then
+          # Bundled Data/ alone is ~1 GiB, so anything far below that means the
+          # game data never reached the runtime directory.
+          if [ "$size" -lt 536870912 ]; then
             echo "Suspiciously small archive ($size bytes): $archive" >&2
             exit 1
           fi
