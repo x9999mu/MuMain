@@ -71,6 +71,8 @@ private:
     int SimulateComboAttack();
     int GetNearestTarget();
     int GetFarthestAttackingTarget();
+    void ScanForTargets();
+    void RejectTarget(int iTargetId);
     void CleanupTargets();
     int ComputeDistanceByRange(int iRange);
     int ComputeDistanceFromTarget(CHARACTER* pTarget);
@@ -98,6 +100,8 @@ private:
     std::atomic<bool> m_bActive;
     std::set<int> m_setTargets;
     std::set<int> m_setTargetsAttacking;
+    std::set<int> m_setPathRejected;
+    POINT m_posPathRejected;
     std::set<int> m_setItems;
     int m_iCurrentItem;
     int m_iCurrentTarget;

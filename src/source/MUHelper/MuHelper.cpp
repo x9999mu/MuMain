@@ -145,6 +145,11 @@ void CMuHelper::Start()
     m_iLoopCounter = 0;
     m_bAttackReady = false;
     m_dwLastTargetTime = 0;
+
+    _targetsLock.lock();
+    m_setPathRejected.clear();
+    m_posPathRejected = {Hero->PositionX, Hero->PositionY};
+    _targetsLock.unlock();
     m_bActive = true;
     UpdateAttackTimer();
 
@@ -298,6 +303,64 @@ void CMuHelper::DeleteTarget(int iTargetId)
     {
         m_iCurrentTarget = -1;
     }
+}
+
+// The helper only learns about monsters from server packets, so a hero that
+// walks up to a monster standing still -- which never emits one -- has to find
+// it locally.
+void CMuHelper::ScanForTargets()
+{
+    if (!m_bActive)
+    {
+        return;
+    }
+
+    const POINT posHero = {Hero->PositionX, Hero->PositionY};
+
+    _targetsLock.lock();
+
+    // Pathfinding rejected these targets from the hero's current tile. Rescanning
+    // them every tick would re-select the same unreachable monster, starve every
+    // other target in range and block idle roaming, so hold them back until the
+    // hero moves and the verdict can actually change.
+    if (m_posPathRejected.x != posHero.x || m_posPathRejected.y != posHero.y)
+    {
+        m_posPathRejected = posHero;
+        m_setPathRejected.clear();
+    }
+
+    for (int i = 0; i < MAX_CHARACTERS_CLIENT; ++i)
+    {
+        CHARACTER* pTarget = &CharactersClient[i];
+        if (!pTarget->Object.Live || pTarget->Dead > 0 || !IsMonster(pTarget) || pTarget == Hero)
+        {
+            continue;
+        }
+
+        if (ComputeDistanceFromTarget(pTarget) > m_iHuntingDistance)
+        {
+            continue;
+        }
+
+        if (m_setPathRejected.count(pTarget->Key) > 0)
+        {
+            continue;
+        }
+
+        m_setTargets.insert(pTarget->Key);
+    }
+
+    _targetsLock.unlock();
+}
+
+void CMuHelper::RejectTarget(int iTargetId)
+{
+    _targetsLock.lock();
+    m_setPathRejected.insert(iTargetId);
+    m_posPathRejected = {Hero->PositionX, Hero->PositionY};
+    _targetsLock.unlock();
+
+    DeleteTarget(iTargetId);
 }
 
 void CMuHelper::DeleteAllTargets()
@@ -776,6 +839,8 @@ int CMuHelper::Attack()
 {
     if (m_iCurrentTarget == -1)
     {
+        ScanForTargets();
+
         if (!m_setTargets.empty())
         {
             CleanupTargets();
@@ -1013,7 +1078,7 @@ int CMuHelper::SimulateSkill(ActionSkillType iSkill, bool bTargetRequired, int i
             // Target not reachable, ignore it
             if (!bHasPath)
             {
-                DeleteTarget(iTarget);
+                RejectTarget(iTarget);
                 return 0;
             }
 
@@ -1114,7 +1179,7 @@ int CMuHelper::SimulateBasicAttack(int iTarget)
         PathFinding2(Hero->PositionX, Hero->PositionY, TargetX, TargetY, &tempPath, m_iHuntingDistance + fRange);
     if (!bHasPath)
     {
-        DeleteTarget(iTarget);
+        RejectTarget(iTarget);
         return 0;
     }
 
