@@ -35,6 +35,20 @@ cmake --build --preset windows-x64-mueditor-release
 The configure presets are listed in `CMakePresets.json`; each has
 `-debug`/`-release` build presets.
 
+## Troubleshooting
+
+- Run builds from an x64 Visual Studio Developer Command Prompt or Developer
+  PowerShell. A regular PowerShell can let compilation start but make the
+  linker select x86 Windows libraries, causing many `LNK2001`/`LNK4272`
+  errors.
+- Start only one CMake/Ninja build at a time. If it remains at `Re-checking
+  globbed directories...` and no compiler process starts, stop the CMake and
+  Ninja processes that belong to that build before retrying; concurrent
+  invocations can wait on each other.
+- Before testing a change, confirm the executable timestamp has been updated,
+  for example `out/build/windows-x64/src/Release/Main.exe`. Compiling one
+  `.cpp` file alone does not update the runnable client.
+
 ## Run
 
 ```powershell

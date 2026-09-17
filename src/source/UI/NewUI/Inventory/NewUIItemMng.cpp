@@ -11,21 +11,10 @@
 
 using namespace SEASON3B;
 
-ItemCreationParams ParseItemData(std::span<const BYTE> itemData)
+namespace
 {
-    ItemCreationParams params = {};
-
-    if (itemData.size() < 5)
-        return params;
-
-    params.Group = (itemData[0] >> 4) & 0xF;
-    params.Number = ((itemData[0] & 0xF) << 8) + itemData[1];
-    params.Level = itemData[2];
-    params.Durability = itemData[3];
-    auto flags = static_cast<ItemOptionFlags>(itemData[4]);
-    params.WithLuck = flags & ItemOptionFlags::HasLuck;
-    params.WithSkill = flags & ItemOptionFlags::HasSkill;
-
+void ParseOptionalItemData(std::span<const BYTE> itemData, ItemOptionFlags flags, ItemCreationParams& params)
+{
     int offset = 0;
     if (flags & ItemOptionFlags::HasOption)
     {
@@ -65,6 +54,26 @@ ItemCreationParams ParseItemData(std::span<const BYTE> itemData)
             params.SocketOptions[i] = itemData[6 + offset + i];
         }
     }
+}
+}
+
+ItemCreationParams ParseItemData(std::span<const BYTE> itemData)
+{
+    ItemCreationParams params = {};
+
+    if (itemData.size() < 5)
+        return params;
+
+    params.Group = (itemData[0] >> 4) & 0xF;
+    params.Number = ((itemData[0] & 0xF) << 8) + itemData[1];
+    params.Level = itemData[2];
+    params.Durability = itemData[3];
+    auto flags = static_cast<ItemOptionFlags>(itemData[4]);
+    params.WithLuck = flags & ItemOptionFlags::HasLuck;
+    params.WithSkill = flags & ItemOptionFlags::HasSkill;
+    params.HasGuardianOption = flags & ItemOptionFlags::HasGuardian;
+
+    ParseOptionalItemData(itemData, flags, params);
 
     return params;
 }
