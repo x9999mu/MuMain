@@ -54,10 +54,28 @@ window writes to these sections:
 - `[ConnectionSettings]`
 - `[Camera]` - orbital wheel-zoom radius (`Zoom`). **New in this PR**, the
   only key the camera rework added.
+- `[UI]` - locale and font, plus `SkipMasterSkillConfirm` (see below).
 
 Missing keys fall back to compile-time defaults from
 `src/source/Data/GameConfig/GameConfigConstants.h`. If `config.ini` doesn't exist,
 it's created the first time anything calls `Save()`.
+
+## Skipping the master skill confirmation
+
+Raising a master skill normally opens a "Would you like to strengthen the
+skill?" dialog that also shows the point cost. Players who level the tree
+often can skip it with a `config.ini` key - it is not in the options window:
+
+```ini
+[UI]
+SkipMasterSkillConfirm=1
+```
+
+With it on, clicking the skill spends the point immediately; the requirement
+and cost checks that reject an invalid upgrade still run, so the click is only
+applied when the server-side point cost was affordable anyway. It defaults to
+`0` (dialog shown), because a point spent on the wrong skill cannot be undone
+from the client.
 
 ## Remembering login credentials
 

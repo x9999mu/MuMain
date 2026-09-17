@@ -37,6 +37,9 @@ namespace CfgKeys
     // UI
     inline constexpr wchar_t CfgKeyUILocale[] = L"Locale";
     inline constexpr wchar_t CfgKeyFont[]     = L"Font";
+    // 1 = spending a master skill point applies immediately, without the
+    // "Would you like to strengthen the skill?" confirmation.
+    inline constexpr wchar_t CfgKeySkipMasterSkillConfirm[] = L"SkipMasterSkillConfirm";
 
     // Camera
     inline constexpr wchar_t CfgKeyZoom[] = L"Zoom";
@@ -75,6 +78,10 @@ namespace CfgDefaults
     // Windows, fontconfig "sans-serif" on Linux), so the look is unchanged until
     // the user picks a font. Any value is passed through as the GDI face name.
     inline constexpr wchar_t CfgDefaultFont[] = L"";
+
+    // Keep the confirmation by default — a master skill point spent on the
+    // wrong skill cannot be taken back from the client side.
+    inline constexpr bool CfgDefaultSkipMasterSkillConfirm = false;
 
     // Legacy config compatibility only. SDL GPU ignores this key and default.
     inline constexpr bool CfgDefaultCoreProfile = true;

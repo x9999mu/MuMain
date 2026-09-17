@@ -10,6 +10,7 @@
 #include "Audio/DSPlaySound.h"
 #include "UI/NewUI/Dialogs/NewUICommonMessageBox.h"
 #include "GameLogic/Skills/SkillManager.h"
+#include "Data/GameConfig/GameConfig.h"
 
 namespace 
 {
@@ -914,19 +915,34 @@ bool SEASON3B::CNewUIMasterLevel::CheckAttributeArea(const _MASTER_SKILLTREE_DAT
         return true;
     }
 
+    this->ApplySkillUpgrade(skillData);
+
+    return true;
+}
+
+// Spends the point on the selected skill. The confirmation dialog is the
+// default; [UI] SkipMasterSkillConfirm=1 in config.ini applies the upgrade
+// straight away for players who level the tree often.
+void SEASON3B::CNewUIMasterLevel::ApplySkillUpgrade(const _MASTER_SKILLTREE_DATA& skillData)
+{
     this->ConsumePoint = skillData.RequiredPoints;
-    
+
     this->CurSkillID = skillData.Skill;
 
-    SEASON3B::CreateMessageBox(MSGBOX_LAYOUT_CLASS(SEASON3B::CMaster_Level_Interface));
+    if (GameConfig::GetInstance().GetSkipMasterSkillConfirm())
+    {
+        SocketClient->ToGameServer()->SendAddMasterSkillPoint(skillData.Skill);
+    }
+    else
+    {
+        SEASON3B::CreateMessageBox(MSGBOX_LAYOUT_CLASS(SEASON3B::CMaster_Level_Interface));
+    }
 
     MouseLButton = false;
 
     MouseLButtonPop = false;
 
     MouseLButtonPush = false;
-
-    return true;
 }
 
 bool SEASON3B::CNewUIMasterLevel::CheckSkillPoint(WORD mLevelUpPoint, const _MASTER_SKILLTREE_DATA& skillData, BYTE skillLevel)

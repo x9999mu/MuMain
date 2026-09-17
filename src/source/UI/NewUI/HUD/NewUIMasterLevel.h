@@ -129,6 +129,7 @@ namespace SEASON3B
         void UnloadImages();
 
         bool CheckAttributeArea(const _MASTER_SKILLTREE_DATA& skillData);
+        void ApplySkillUpgrade(const _MASTER_SKILLTREE_DATA& skillData);
         bool CheckSkillPoint(WORD mLevelUpPoint, const _MASTER_SKILLTREE_DATA& skillData, BYTE skillLevel);
         bool CheckParentSkill(const _MASTER_SKILLTREE_DATA& masterSkill);
         bool CheckRankPoint(BYTE group, BYTE rank, BYTE skillLevel);

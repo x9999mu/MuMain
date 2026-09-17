@@ -16,5 +16,6 @@ ServerPort=44405
 [UI]
 Locale=en
 Font=
+SkipMasterSkillConfirm=0
 [Render]
 VSync=1
