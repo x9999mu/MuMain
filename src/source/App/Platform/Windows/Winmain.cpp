@@ -2148,14 +2148,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int nC
         SetEffectVolumeLevel(value);
     }
 
-    // A zero interval runs once per frame; ExecuteSkill owns the skill's actual cadence.
-    constexpr unsigned helperAttackIntervalMs = 0;
     auto& timers = Core::Time::FrameTimerScheduler::Instance();
     timers.SetRepeating(HACK_TIMER, 20 * 1000, [] { CheckHack(); });
     timers.SetRepeating(MUHELPER_TIMER, 250 /* ms */,
                         [] { MUHelper::CMuHelper::TimerProc(nullptr, 0, MUHELPER_TIMER, 0); });
-    timers.SetRepeating(MUHELPER_ATTACK_TIMER, helperAttackIntervalMs,
-                        [] { MUHelper::CMuHelper::TimerProc(nullptr, 0, MUHELPER_ATTACK_TIMER, 0); });
 
     srand((unsigned)time(nullptr));
 

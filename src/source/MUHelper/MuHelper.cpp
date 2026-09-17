@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "GameLogic/Combat/SkillExecution.h"
 
+#include <algorithm>
+
 #include <thread>
 #include <atomic>
 #include <chrono>
@@ -13,6 +15,8 @@
 #include "UI/NewUI/NewUISystem.h"
 #include "Core/Utilities/Random.h"
 #include "Core/Utilities/Log/muConsoleDebug.h"
+#include "Core/Time/FrameTimerScheduler.h"
+
 #include "Character/CharacterManager.h"
 #include "GameLogic/Skills/SkillManager.h"
 #include "GameLogic/Social/PartyManager.h"
@@ -56,6 +60,11 @@ void CALLBACK CMuHelper::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD
 void CMuHelper::Save(const ConfigData& config)
 {
     m_config = config;
+    m_config.iAttackDelayMs = std::clamp(m_config.iAttackDelayMs, MIN_ATTACK_DELAY_MS, MAX_ATTACK_DELAY_MS);
+    if (m_bActive)
+    {
+        UpdateAttackTimer();
+    }
 
     PRECEIVE_MUHELPER_DATA netData;
     ConfigDataSerDe::Serialize(m_config, netData);
@@ -66,6 +75,11 @@ void CMuHelper::Save(const ConfigData& config)
 void CMuHelper::Load(const ConfigData& config)
 {
     m_config = config;
+    m_config.iAttackDelayMs = std::clamp(m_config.iAttackDelayMs, MIN_ATTACK_DELAY_MS, MAX_ATTACK_DELAY_MS);
+    if (m_bActive)
+    {
+        UpdateAttackTimer();
+    }
 }
 
 ConfigData CMuHelper::GetConfig() const
@@ -132,6 +146,8 @@ void CMuHelper::Start()
     m_bAttackReady = false;
 
     m_bActive = true;
+    UpdateAttackTimer();
+
     g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Started");
 }
 
@@ -139,7 +155,24 @@ void CMuHelper::Stop()
 {
     m_bActive = false;
     m_bAttackReady = false;
+    Core::Time::FrameTimerScheduler::Instance().Kill(MUHELPER_ATTACK_TIMER);
     g_ConsoleDebug->Write(MCD_NORMAL, L"[MU Helper] Stopped");
+}
+
+void CMuHelper::UpdateAttackTimer()
+{
+    Core::Time::FrameTimerScheduler::Instance().SetRepeating(
+        MUHELPER_ATTACK_TIMER, static_cast<unsigned>(m_config.iAttackDelayMs),
+        [] { CMuHelper::TimerProc(nullptr, 0, MUHELPER_ATTACK_TIMER, 0); });
+}
+void CMuHelper::CombatTick()
+{
+    if (!m_bActive || Hero->SafeZone || !m_bAttackReady)
+    {
+        return;
+    }
+
+    Attack();
 }
 
 void CMuHelper::WorkLoop(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
@@ -173,16 +206,6 @@ void CMuHelper::WorkLoop(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 
         m_iLoopCounter = 0;
     }
-}
-
-void CMuHelper::CombatTick()
-{
-    if (!m_bActive || Hero->SafeZone || !m_bAttackReady)
-    {
-        return;
-    }
-
-    Attack();
 }
 
 void CMuHelper::Work()
@@ -910,6 +933,13 @@ int CMuHelper::SimulateAttack(ActionSkillType iSkill)
 
 int CMuHelper::SimulateSkill(ActionSkillType iSkill, bool bTargetRequired, int iTarget)
 {
+
+    // Let the current swing finish before issuing another action, so the
+    // cadence tracks AttackSpeed instead of the fixed helper timer.
+    if (IsHeroSwingInProgress())
+    {
+        return 0;
+    }
 
     g_MovementSkill.m_iSkill = iSkill;
     g_MovementSkill.m_bMagic = true;

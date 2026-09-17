@@ -84,7 +84,8 @@ enum ETextBoxImg : uint16_t
     TEXTBOX_IMG_DISTANCE_TIME = 6,
     TEXTBOX_IMG_SKILL1_TIME = 7,
     TEXTBOX_IMG_SKILL2_TIME = 8,
-    TEXTBOX_IMG_ADD_EXTRA_ITEM = 9
+    TEXTBOX_IMG_ADD_EXTRA_ITEM = 9,
+    TEXTBOX_IMG_ATTACK_DELAY = 10,
 };
 
 constexpr int BITMAP_DISTANCE_BEGIN = BITMAP_INTERFACE_CRYWOLF_BEGIN + 33;
@@ -378,6 +379,8 @@ void CNewUIMuHelper::InitImage()
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 137, 20, 15, TEXTBOX_IMG_DISTANCE_TIME, 0);
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 174, 20, 15, TEXTBOX_IMG_SKILL1_TIME, 0);
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 226, 20, 15, TEXTBOX_IMG_SKILL2_TIME, 0);
+    InsertIcon(IMAGE_MACROUI_HELPER_INPUTNUMBER, m_Pos.x + 140, m_Pos.y + 288, 20, 15, TEXTBOX_IMG_ATTACK_DELAY, 0);
+
     InsertIcon(IMAGE_MACROUI_HELPER_INPUTSTRING, m_Pos.x + 34, m_Pos.y + 216, 94, 15, TEXTBOX_IMG_ADD_EXTRA_ITEM, 1);
 
     RegisterIconCharacter(0xFF, SKILL_SLOT_SKILL1);
@@ -388,6 +391,7 @@ void CNewUIMuHelper::InitImage()
     RegisterIconCharacter(0xFF, TEXTBOX_IMG_DISTANCE_TIME);
     RegisterIconCharacter(0xFF, TEXTBOX_IMG_SKILL1_TIME);
     RegisterIconCharacter(0xFF, TEXTBOX_IMG_ADD_EXTRA_ITEM);
+    RegisterIconCharacter(0xFF, TEXTBOX_IMG_ATTACK_DELAY);
 
     RegisterIconCharacter(Dark_Knight, SKILL_SLOT_SKILL3);
     RegisterIconCharacter(Dark_Knight, TEXTBOX_IMG_SKILL2_TIME);
@@ -419,6 +423,9 @@ void CNewUIMuHelper::InitText()
 
     // InsertText(m_Pos.x + 162, m_Pos.y + 230, I18N::Game::Min, 10, 0);
     InsertText(m_Pos.x + 162, m_Pos.y + 230, L"s", 10, 0);
+    InsertText(m_Pos.x + 100, m_Pos.y + 292, I18N::Game::Attack, 6, 0);
+    InsertText(m_Pos.x + 162, m_Pos.y + 292, L"ms", 13, 0);
+
     InsertText(m_Pos.x + 18, m_Pos.y + 78, I18N::Game::Range, 11, 1); // Range
     InsertText(m_Pos.x + 18, m_Pos.y + 83, L"________", 12, 1);
 
@@ -427,6 +434,9 @@ void CNewUIMuHelper::InitText()
     RegisterTextCharacter(0xFF, 3);
     RegisterTextCharacter(0xFF, 4);
     RegisterTextCharacter(0xFF, 5);
+    RegisterTextCharacter(0xFF, 6);
+    RegisterTextCharacter(0xFF, 13);
+
     RegisterTextCharacter(0xFF, 7);
     RegisterTextCharacter(0xFF, 8);
     RegisterTextCharacter(0xFF, 11);
@@ -479,6 +489,15 @@ void CNewUIMuHelper::InitTextboxInput()
     m_Skill3DelayInput.SetOption(UIOPTION_NUMBERONLY);
     std::swprintf(wsInitText, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.aiSkillInterval[2]);
     m_Skill3DelayInput.SetText(wsInitText);
+    m_AttackDelayInput.Init(g_hWnd, 17, 15, MAX_NUMBER_DIGITS, false);
+    m_AttackDelayInput.SetPosition(m_Pos.x + 142, m_Pos.y + 291);
+    m_AttackDelayInput.SetTextColor(255, 0, 0, 0);
+    m_AttackDelayInput.SetBackColor(255, 255, 255, 255);
+    m_AttackDelayInput.SetFont(g_hFont);
+    m_AttackDelayInput.SetState(UISTATE_NORMAL);
+    m_AttackDelayInput.SetOption(UIOPTION_NUMBERONLY);
+    std::swprintf(wsInitText, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.iAttackDelayMs);
+    m_AttackDelayInput.SetText(wsInitText);
 
     m_ItemInput.Init(g_hWnd, 88, 15, MAX_ITEM_NAME, false);
     m_ItemInput.SetPosition(m_Pos.x + 36, m_Pos.y + 219);
@@ -507,6 +526,8 @@ bool CNewUIMuHelper::Update()
             m_DistanceTimeInput.SetState(UISTATE_NORMAL);
             m_Skill2DelayInput.SetState(UISTATE_NORMAL);
             m_Skill3DelayInput.SetState(UISTATE_NORMAL);
+            m_AttackDelayInput.SetState(UISTATE_NORMAL);
+
             m_ItemInput.SetState(UISTATE_HIDE);
         }
         else if (m_iCurrentOpenTab == 1)
@@ -514,6 +535,8 @@ bool CNewUIMuHelper::Update()
             m_DistanceTimeInput.SetState(UISTATE_HIDE);
             m_Skill2DelayInput.SetState(UISTATE_HIDE);
             m_Skill3DelayInput.SetState(UISTATE_HIDE);
+            m_AttackDelayInput.SetState(UISTATE_HIDE);
+
             m_ItemInput.SetState(UISTATE_NORMAL);
         }
     }
@@ -729,6 +752,11 @@ bool CNewUIMuHelper::UpdateMouseEvent()
         {
             m_Skill3DelayInput.GiveFocus();
         }
+        else if (iIconIndex == TEXTBOX_IMG_ATTACK_DELAY)
+        {
+            m_AttackDelayInput.GiveFocus();
+        }
+
         else if (iIconIndex == TEXTBOX_IMG_ADD_EXTRA_ITEM)
         {
             m_ItemInput.GiveFocus();
@@ -1045,6 +1073,7 @@ void CNewUIMuHelper::Reset()
     _TempConfig.bLongRangeCounterAttack = false;
     _TempConfig.bReturnToOriginalPosition = true;
     _TempConfig.bRandomMoveWhenIdle = false;
+    _TempConfig.iAttackDelayMs = DEFAULT_ATTACK_DELAY_MS;
 
     _TempConfig.aiSkill.fill(0);
     _TempConfig.bUseCombo = false;
@@ -1131,6 +1160,9 @@ void CNewUIMuHelper::ApplyConfig()
     memset(wsTempNum, 0, sizeof(wsTempNum));
     std::swprintf(wsTempNum, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.aiSkillInterval[2]);
     m_Skill3DelayInput.SetText(wsTempNum);
+    memset(wsTempNum, 0, sizeof(wsTempNum));
+    std::swprintf(wsTempNum, MAX_NUMBER_DIGITS + 1, L"%d", _TempConfig.iAttackDelayMs);
+    m_AttackDelayInput.SetText(wsTempNum);
 
     m_CheckBoxList[CHECKBOX_ID_BUFF_DURATION].box->RegisterBoxState(_TempConfig.bBuffDuration);
     m_CheckBoxList[CHECKBOX_ID_PARTY].box->RegisterBoxState(_TempConfig.bSupportParty);
@@ -1182,6 +1214,9 @@ void CNewUIMuHelper::SaveConfig()
 
     m_Skill3DelayInput.GetText(wsNumberInput, std::size(wsNumberInput));
     _TempConfig.aiSkillInterval[2] = GetIntFromTextInput(wsNumberInput);
+    m_AttackDelayInput.GetText(wsNumberInput, std::size(wsNumberInput));
+    _TempConfig.iAttackDelayMs =
+        std::clamp(GetIntFromTextInput(wsNumberInput), MIN_ATTACK_DELAY_MS, MAX_ATTACK_DELAY_MS);
 
     _TempConfig.aiSkill[0] = m_aiSelectedSkills[0] > 0 ? m_aiSelectedSkills[0] : 0;
     _TempConfig.aiSkill[1] = m_aiSelectedSkills[1] > 0 ? m_aiSelectedSkills[1] : 0;
@@ -1297,6 +1332,8 @@ bool CNewUIMuHelper::Render()
     {
         m_DistanceTimeInput.Render();
         m_Skill2DelayInput.Render();
+
+        m_AttackDelayInput.Render();
 
         if (gCharacterManager.GetBaseClass(Hero->Class) != CLASS_DARK_LORD)
         {

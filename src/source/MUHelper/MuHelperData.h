@@ -46,6 +46,9 @@ enum EPetAttackMode : BYTE
     PET_ATTACK_AUTO = 0x01,
     PET_ATTACK_TOGETHER = 0x02
 };
+constexpr int DEFAULT_ATTACK_DELAY_MS = 250;
+constexpr int MIN_ATTACK_DELAY_MS = 1;
+constexpr int MAX_ATTACK_DELAY_MS = 999;
 
 typedef struct _PetAttackConfig
 {
@@ -54,6 +57,7 @@ typedef struct _PetAttackConfig
     bool bLongRangeCounterAttack = false;
     bool bReturnToOriginalPosition = false;
     int iMaxSecondsAway = 0;
+    int iAttackDelayMs = DEFAULT_ATTACK_DELAY_MS;
 
     std::array<uint32_t, 3> aiSkill = {0, 0, 0};
     std::array<uint32_t, 3> aiSkillCondition = {0, 0, 0};
@@ -92,9 +96,9 @@ typedef struct _PetAttackConfig
     bool bPickExtraItems = false;
     std::set<std::wstring> aExtraItems;
 
-    // Client-local settings (byte index 33, bits 0-4).
+    // Client-local settings (byte 33 flags; byte 34 attack delay).
     // The server (OpenMU) stores MuHelperConfiguration as byte[] echoed
-    // unchanged. It does not parse or enforce these bits. Adding new bits
+    // unchanged. It does not parse or enforce these bytes. Adding new fields
     // in unused positions is safe. However, changing existing bits will
     // break offline leveling bots, since the server side bot relies on the
     // same packet layout.

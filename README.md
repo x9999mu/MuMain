@@ -47,7 +47,8 @@ What I have done so far:
     * Item equipping with right mouse click
     * Glow for red, blue and black fenrir
     * Additional screen resolutions
-  * 🔥 Incorporated MU Helper UI and logic - there's some work to do but core functionality is usable
+  * 🔥 Incorporated MU Helper UI and logic - there's some work to do but core functionality is usable.
+    * On the Hunting tab, Attack delay defaults to 250 ms and accepts 1–999 ms.
   * 🔥 Auto-reconnect system
   * Removed if-defs for Rage Fighter class as we are targeting Season 6, so Rage
     Fighter should always be included.

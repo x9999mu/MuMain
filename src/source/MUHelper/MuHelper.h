@@ -50,6 +50,7 @@ public:
 
 private:
     void WorkLoop(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
+    void UpdateAttackTimer();
     void CombatTick();
     void Work();
     int ActivatePet();

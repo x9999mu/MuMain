@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "MuHelperData.h"
 
+#include <algorithm>
+
 namespace MUHelper
 {
 
@@ -12,6 +14,8 @@ void ConfigDataSerDe::Serialize(const ConfigData& gameData, PRECEIVE_MUHELPER_DA
     netData.DistanceMin = static_cast<BYTE>(gameData.iMaxSecondsAway & 0x0F);
     netData.LongDistanceAttack = gameData.bLongRangeCounterAttack ? 1 : 0;
     netData.OriginalPosition = gameData.bReturnToOriginalPosition ? 1 : 0;
+    netData.AttackDelayMs =
+        static_cast<WORD>(std::clamp(gameData.iAttackDelayMs, MIN_ATTACK_DELAY_MS, MAX_ATTACK_DELAY_MS));
 
     netData.BasicSkill1 = static_cast<WORD>(gameData.aiSkill[0] & 0xFFFF);
     netData.ActivationSkill1 = static_cast<WORD>(gameData.aiSkill[1] & 0xFFFF);
@@ -154,6 +158,10 @@ void ConfigDataSerDe::Deserialize(const PRECEIVE_MUHELPER_DATA& netData, ConfigD
     gameData.iMaxSecondsAway = static_cast<int>(netData.DistanceMin);
     gameData.bLongRangeCounterAttack = (bool)netData.LongDistanceAttack;
     gameData.bReturnToOriginalPosition = (bool)netData.OriginalPosition;
+    const int iAttackDelayMs = static_cast<int>(netData.AttackDelayMs);
+    gameData.iAttackDelayMs = iAttackDelayMs == 0
+                                  ? DEFAULT_ATTACK_DELAY_MS
+                                  : std::clamp(iAttackDelayMs, MIN_ATTACK_DELAY_MS, MAX_ATTACK_DELAY_MS);
 
     gameData.aiSkill.fill(0);
     gameData.aiSkill[0] = static_cast<int>(netData.BasicSkill1);
