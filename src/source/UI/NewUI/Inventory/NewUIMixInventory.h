@@ -95,6 +95,7 @@ namespace SEASON3B
         void RenderMixDescriptions(float fPos_x, float fPos_y);
 
         void CheckMixInventory();
+        void ReturnToReadyWhenSettled();
         bool Mix();
         void RenderMixEffect();
 

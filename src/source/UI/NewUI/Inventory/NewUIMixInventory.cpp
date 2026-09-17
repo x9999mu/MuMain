@@ -227,6 +227,7 @@ bool CNewUIMixInventory::Update()
     if (IsVisible())
     {
         CheckMixInventory();
+        ReturnToReadyWhenSettled();
         switch (g_MixRecipeMgr.GetMixInventoryType())
         {
         case SEASON3A::MIXTYPE_ATTACH_SOCKET:
@@ -1070,6 +1071,21 @@ void CNewUIMixInventory::CheckMixInventory()
         g_MixRecipeMgr.AddItemToMixItemInventory(pItem);
     }
     g_MixRecipeMgr.CheckMixInventory();
+}
+
+// The server keeps the crafting dialog open and re-validates every mix request against the
+// crafting box, so the window can go back to its idle state as soon as the box is empty: the
+// next ingredients can be dropped in and mixed without reopening the dialog. MIX_REQUESTED is
+// never touched here, so no second request can overlap the mix the server is still working on.
+void CNewUIMixInventory::ReturnToReadyWhenSettled()
+{
+    if (GetMixState() != MIX_FINISHED)
+        return;
+
+    if (m_pNewInventoryCtrl == nullptr || m_pNewInventoryCtrl->GetNumberOfItems() > 0)
+        return;
+
+    SetMixState(SEASON3B::CNewUIMixInventory::MIX_READY);
 }
 
 void CNewUIMixInventory::RenderMixEffect()
