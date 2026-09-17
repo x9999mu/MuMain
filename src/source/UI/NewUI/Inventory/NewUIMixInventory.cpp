@@ -986,14 +986,14 @@ bool CNewUIMixInventory::InventoryProcess()
 
 // Direction-agnostic core of the right-click moves: pick the item under the
 // cursor in srcCtrl, reserve a slot in dstCtrl, and send the same move that
-// drag & drop sends.
+// drag & drop sends. Which mix states allow the move is the caller's call.
 bool CNewUIMixInventory::AutoMoveItem(CNewUIInventoryCtrl* srcCtrl, STORAGE_TYPE srcType,
     CNewUIInventoryCtrl* dstCtrl, STORAGE_TYPE dstType, bool requireMixSource)
 {
     if (CNewUIInventoryCtrl::GetPickedItem())
         return false;
 
-    if (srcCtrl == nullptr || dstCtrl == nullptr || GetMixState() != MIX_READY)
+    if (srcCtrl == nullptr || dstCtrl == nullptr)
         return false;
 
     ITEM* pItemObj = srcCtrl->FindItemAtPt(MouseX, MouseY);
@@ -1036,6 +1036,11 @@ bool CNewUIMixInventory::ProcessMyInvenItemAutoMove(CNewUIInventoryCtrl* sourceC
     if (sourceCtrl == nullptr || sourceCtrl->GetStorageType() != STORAGE_TYPE::INVENTORY)
         return false;
 
+    // Ingredients may only go in while the box is idle: during a combination the
+    // box is locked, and a finished one must be emptied before it is reused.
+    if (GetMixState() != MIX_READY)
+        return false;
+
     return AutoMoveItem(sourceCtrl, STORAGE_TYPE::INVENTORY,
         m_pNewInventoryCtrl, g_MixRecipeMgr.GetMixInventoryEquipmentIndex(),
         /*requireMixSource*/ true);
@@ -1043,6 +1048,12 @@ bool CNewUIMixInventory::ProcessMyInvenItemAutoMove(CNewUIInventoryCtrl* sourceC
 
 bool CNewUIMixInventory::ProcessMixItemAutoMoveToInventory()
 {
+    // Only an in-flight combination blocks this: the box is locked while the server
+    // works, but once it answered (MIX_FINISHED) both the created result and any
+    // jewels left over from a failure have to be able to go back with a right click.
+    if (GetMixState() == MIX_REQUESTED)
+        return false;
+
     CNewUIInventoryCtrl* dstCtrl = g_pMyInventory ? g_pMyInventory->GetInventoryCtrl() : nullptr;
     return AutoMoveItem(m_pNewInventoryCtrl, g_MixRecipeMgr.GetMixInventoryEquipmentIndex(),
         dstCtrl, STORAGE_TYPE::INVENTORY,
