@@ -144,7 +144,7 @@ void CMuHelper::Start()
 
     m_iLoopCounter = 0;
     m_bAttackReady = false;
-
+    m_dwLastTargetTime = 0;
     m_bActive = true;
     UpdateAttackTimer();
 
@@ -798,6 +798,8 @@ int CMuHelper::Attack()
         }
     }
 
+    m_dwLastTargetTime = GetTickCount();
+
     if (m_config.bUseCombo)
     {
         return SimulateComboAttack();
@@ -1204,15 +1206,28 @@ int CMuHelper::MoveRandomlyWhenIdle()
         return 0;
     }
 
+    // Wait 2 seconds after the last target was cleared before moving randomly
+    if (GetTickCount() - m_dwLastTargetTime < 2000)
+    {
+        return 0;
+    }
+
     constexpr int kRandomRoamAttempts = 16;
-    constexpr int kMaxTerrainCoordinate = TERRAIN_SIZE - 1;
     for (int attempt = 0; attempt < kRandomRoamAttempts; ++attempt)
     {
-        const POINT destination = {
-            Random::RangeInt(0, kMaxTerrainCoordinate),
-            Random::RangeInt(0, kMaxTerrainCoordinate),
-        };
+        int dx = Random::RangeInt(-12, 12);
+        int dy = Random::RangeInt(-12, 12);
 
+        // Ensure the character moves a decent distance
+        if (std::abs(dx) < 5 && std::abs(dy) < 5)
+        {
+            continue;
+        }
+
+        const POINT destination = {
+            std::clamp(Hero->PositionX + dx, 0, TERRAIN_SIZE - 1),
+            std::clamp(Hero->PositionY + dy, 0, TERRAIN_SIZE - 1),
+        };
         if (SimulateMove(destination) == MoveResult::Moving)
         {
             return 0;

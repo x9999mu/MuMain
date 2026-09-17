@@ -115,6 +115,7 @@ private:
     bool m_bPetActivated;
     int m_iTotalCost;
     bool m_bAttackReady;
+    DWORD m_dwLastTargetTime;
 };
 
 extern CMuHelper g_MuHelper;
