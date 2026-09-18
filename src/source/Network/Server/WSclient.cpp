@@ -6675,6 +6675,34 @@ void ReceiveTradeYourInventoryExtended(std::span<const BYTE> ReceiveBuffer)
     g_pTrade->ProcessToReceiveYourItemAdd(Data->Index, itemData);
 }
 
+// The crafting result codes of the server's item crafting result packet. The codes 3, 6, 7 and 8
+// mean that the server refused to run the crafting, e.g. because the items in the craft box don't
+// match the recipe of the opened npc. The other codes don't need an extra message:
+// 0 = Failed, 1 = Success and 2 = NotEnoughMoney have their own handling at the call site.
+static void AddCraftingRejectedMessage(BYTE resultCode)
+{
+    switch (resultCode)
+    {
+    case 3: // TooManyItems
+        g_pSystemLogBox->AddText(I18N::Game::ImproperItemsForCombination, SEASON3B::TYPE_ERROR_MESSAGE);
+        break;
+    case 6: // LackingMixItems
+    {
+        wchar_t szText[128] = {0,};
+        mu_swprintf(szText, I18N::Game::YouAreLackOfSItems, I18N::Game::Combining);
+        g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
+        break;
+    }
+    case 7: // IncorrectMixItems
+        g_pSystemLogBox->AddText(I18N::Game::IncorrectItem, SEASON3B::TYPE_ERROR_MESSAGE);
+        break;
+    default: // InvalidItemLevel
+        g_pSystemLogBox->AddText(
+            I18N::Game::TheItemPropertiesDoNotMatchForCombinationCannotCombineItems, SEASON3B::TYPE_ERROR_MESSAGE);
+        break;
+    }
+}
+
 void ReceiveMixExtended(std::span<const BYTE> ReceiveBuffer)
 {
     auto Data = safe_cast<PHEADER_DEFAULT_ITEM_EXTENDED>(ReceiveBuffer);
@@ -6823,9 +6851,16 @@ void ReceiveMixExtended(std::span<const BYTE> ReceiveBuffer)
         }
         break;
     case 3:
-    case 5:
+    case 6:
     case 7:
     case 8:
+        // The server refused to execute the crafting, e.g. because a required item is missing
+        // or has an unsupported level. Nothing was consumed, so the craft box keeps its items
+        // and the player can correct the ingredients and try again.
+        g_pMixInventory->SetMixState(SEASON3B::CNewUIMixInventory::MIX_READY);
+        AddCraftingRejectedMessage(Data->Index);
+        break;
+    case 5:
     case 0x0A:
     default:
         g_pMixInventory->SetMixState(SEASON3B::CNewUIMixInventory::MIX_FINISHED);
