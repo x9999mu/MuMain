@@ -210,9 +210,10 @@ jobs:
           unzip -q "dl/$DEVELOP_ASSET" -x 'Data/*' 'fonts/*' -d runtime-src
           test -f runtime-src/Main.exe || { echo "::error::The develop archive does not contain Main.exe." >&2; ls -la runtime-src >&2; exit 1; }
 
-          # Deterministic options keep the hash stable for unchanged content.
+          # Deterministic options keep the hash stable for unchanged content; the fixed
+          # timestamp avoids files with a 1970 date on the player machines.
           # Debug artifacts are not needed on the player machines.
-          tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
+          tar --sort=name --mtime='@1704067200' --owner=0 --group=0 --numeric-owner \
             --exclude='*.pdb' --exclude='*.ilk' --exclude='*.exp' \
             -czf "dl/$RUNTIME_ASSET" -C runtime-src .
 
