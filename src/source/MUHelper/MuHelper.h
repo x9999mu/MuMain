@@ -73,6 +73,8 @@ private:
     int GetFarthestAttackingTarget();
     void ScanForTargets();
     void RejectTarget(int iTargetId);
+    bool IsTargetValid(int iTargetId) const;
+    bool HasCombatTarget() const;
     void CleanupTargets();
     int ComputeDistanceByRange(int iRange);
     int ComputeDistanceFromTarget(CHARACTER* pTarget);

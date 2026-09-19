@@ -284,7 +284,8 @@ void CMuHelper::AddTarget(int iTargetId, bool bIsAttacking)
         _targetsLock.unlock();
     }
 
-    if (m_config.bUseSelfDefense && IsMonster(pTarget))
+    if (m_config.bUseSelfDefense && IsMonster(pTarget) &&
+        (m_iCurrentTarget == -1 || !IsTargetValid(m_iCurrentTarget)))
     {
         m_iCurrentTarget = iTargetId;
     }
@@ -361,6 +362,40 @@ void CMuHelper::RejectTarget(int iTargetId)
     _targetsLock.unlock();
 
     DeleteTarget(iTargetId);
+}
+
+bool CMuHelper::IsTargetValid(int iTargetId) const
+{
+    const int iCharIndex = FindCharacterIndex(iTargetId);
+    if (iCharIndex == MAX_CHARACTERS_CLIENT)
+    {
+        return false;
+    }
+
+    CHARACTER* pTarget = &CharactersClient[iCharIndex];
+    return pTarget->Object.Live && pTarget->Dead == 0 && IsMonster(pTarget);
+}
+
+bool CMuHelper::HasCombatTarget() const
+{
+    if (IsTargetValid(m_iCurrentTarget))
+    {
+        return true;
+    }
+
+    bool bHasTarget = false;
+    _targetsLock.lock();
+    for (const int iTargetId : m_setTargets)
+    {
+        if (IsTargetValid(iTargetId))
+        {
+            bHasTarget = true;
+            break;
+        }
+    }
+    _targetsLock.unlock();
+
+    return bHasTarget;
 }
 
 void CMuHelper::DeleteAllTargets()
@@ -837,11 +872,16 @@ int CMuHelper::RepairEquipments()
 
 int CMuHelper::Attack()
 {
+    if (m_iCurrentTarget != -1 && !IsTargetValid(m_iCurrentTarget))
+    {
+        m_iCurrentTarget = -1;
+    }
+
     if (m_iCurrentTarget == -1)
     {
         ScanForTargets();
 
-        if (!m_setTargets.empty())
+        if (HasCombatTarget())
         {
             CleanupTargets();
 
@@ -880,12 +920,9 @@ int CMuHelper::Attack()
         }
     }
 
-    if (m_config.bFallbackBasicAttack)
+    if (m_config.bFallbackBasicAttack && !Hero->Movement)
     {
-        if (!Hero->Movement)
-        {
-            return SimulateBasicAttack(m_iCurrentTarget);
-        }
+        return SimulateBasicAttack(m_iCurrentTarget);
     }
 
     return 1;
@@ -1223,7 +1260,7 @@ int CMuHelper::SimulateBasicAttack(int iTarget)
 
 int CMuHelper::Regroup()
 {
-    if (m_config.bRandomMoveWhenIdle)
+    if (m_config.bRandomMoveWhenIdle || HasCombatTarget())
     {
         m_iSecondsAway = 0;
         return 1;
@@ -1360,6 +1397,11 @@ ActionSkillType CMuHelper::GetDrainLifeSkill()
 
 int CMuHelper::ObtainItem()
 {
+    if (HasCombatTarget())
+    {
+        return 1;
+    }
+
     if (m_iCurrentItem == MAX_ITEMS)
     {
         m_iCurrentItem = SelectItemToObtain();
