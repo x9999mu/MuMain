@@ -2,7 +2,7 @@ name: Data Assets
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - src/bin/Data/**
       - src/bin/fonts/**
@@ -69,3 +69,33 @@ jobs:
               --latest=false
           fi
           gh release upload "$tag" "$archive" "${archive}.sha256" --clobber
+
+      # Every different Data/ + fonts/ content gets its own release, which would pile up
+      # (427 MB each). Keep the newest ones so the launcher can still download them, and
+      # remove the older ones.
+      - name: Remove old data releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP_DATA_RELEASES: 3
+        run: |
+          old_releases=$(gh release list --exclude-drafts --limit 200 --json tagName,createdAt \
+            | python3 -c "
+          import json, os, sys
+          keep = int(os.environ['KEEP_DATA_RELEASES'])
+          releases = json.load(sys.stdin)
+          data_releases = [r for r in releases if r['tagName'].startswith('data-')]
+          data_releases.sort(key=lambda r: r['createdAt'], reverse=True)
+          print('\n'.join(r['tagName'] for r in data_releases[keep:]))
+          ")
+
+          if [ -z "$old_releases" ]; then
+            echo "No old data release to remove."
+            exit 0
+          fi
+
+          printf '%s\n' "$old_releases" | while read -r old_tag; do
+            [ -n "$old_tag" ] || continue
+            echo "Removing the old data release $old_tag."
+            gh release delete "$old_tag" --cleanup-tag --yes
+          done

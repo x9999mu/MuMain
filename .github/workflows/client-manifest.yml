@@ -1,0 +1,344 @@
+name: Client manifest
+
+# Publishes the manifest which the client launcher uses to install and update the client.
+# See docs/ClientLauncherDesign.md in the OpenMU repository.
+#
+# The manifest needs two packages:
+#   * runtime: the asset of a v* release, the CI artifact of the commit, or - for the develop
+#     branch, where the CI build jobs only run on main - the rolling develop build
+#   * data: the content-addressed data-<id> release
+#
+# The runtime is mirrored to the manifest release with a content hash in its asset name, so
+# players never run into a hash mismatch because an asset was replaced while downloading, and
+# a commit which does not change the runtime does not force a new download.
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      runtime_tag:
+        description: 'Runtime release tag to use, e.g. v1.0.0. Empty means the automatic resolution.'
+        required: false
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: client-manifest-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MANIFEST_RELEASE_TAG: client-latest
+  RUNTIME_ASSET: MuMain-windows-native-x64-release-editor-off-no-data.tar.gz
+  RUNTIME_ARTIFACT: mu-client-windows-native-x64-release-editor-off-no-data-main
+  DEVELOP_RELEASE_TAG: develop-latest
+  DEVELOP_ASSET: MuMain-develop-windows-x64.zip
+  KEEP_RUNTIME_ASSETS: 3
+  DATA_WORKFLOW: data-assets.yml
+  LAUNCHER_REPOSITORY: x9999mu/OpenMU
+
+jobs:
+  manifest:
+    name: Publish the client manifest
+    runs-on: ubuntu-latest
+    # Publishing the manifest release must not trigger another manifest run.
+    if: >-
+      github.event_name != 'release'
+      || (startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'data-'))
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Identify the data release
+        shell: bash
+        run: |
+          test -f src/bin/Data/Dec2.dat
+          test -f src/bin/fonts/DejaVuSans.ttf
+
+          data_tree=$(git rev-parse HEAD:src/bin/Data)
+          fonts_tree=$(git rev-parse HEAD:src/bin/fonts)
+          asset_id=$(printf '%s\n%s\n' "$data_tree" "$fonts_tree" | sha256sum | cut -c1-16)
+
+          {
+            echo "data_id=${asset_id}"
+            echo "data_tag=data-${asset_id}"
+            echo "data_archive=MuMain-data-${asset_id}.tar.gz"
+          } >> "$GITHUB_ENV"
+
+      - name: Ensure the data release exists
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view "$data_tag" >/dev/null 2>&1; then
+            echo "The data release $data_tag does not exist yet; dispatching the $DATA_WORKFLOW workflow."
+            gh workflow run "$DATA_WORKFLOW" --ref "$GITHUB_REF_NAME" || true
+          fi
+
+          for attempt in $(seq 1 20); do
+            if gh release view "$data_tag" >/dev/null 2>&1; then
+              echo "The data release $data_tag is available."
+              exit 0
+            fi
+
+            echo "Waiting for the data release $data_tag (attempt $attempt)..."
+            sleep 30
+          done
+
+          echo "::error::The data release $data_tag is still missing."
+          echo "Run the $DATA_WORKFLOW workflow and try again." >&2
+          exit 1
+
+      - name: Resolve the runtime source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_TAG: ${{ inputs.runtime_tag }}
+        run: |
+          rm -rf dl runtime-src
+          mkdir -p dl
+
+          # 1. An explicit release, or the newest v* release which contains the runtime asset.
+          runtime_tag="$REQUESTED_TAG"
+          if [ -z "$runtime_tag" ]; then
+            releases=$(gh release list --exclude-drafts --exclude-pre-releases --limit 50 --json tagName,createdAt)
+            runtime_tag=$(printf '%s' "$releases" | python3 -c "
+          import json, sys
+          releases = json.load(sys.stdin)
+          candidates = [r for r in releases if r['tagName'].startswith('v')]
+          candidates.sort(key=lambda r: r['createdAt'], reverse=True)
+          print(candidates[0]['tagName'] if candidates else '')
+          ")
+          fi
+
+          if [ -n "$runtime_tag" ] && gh release view "$runtime_tag" --json assets --jq '.assets[].name' | grep -qx "$RUNTIME_ASSET"; then
+            {
+              echo "runtime_source=release"
+              echo "runtime_tag=${runtime_tag}"
+              echo "runtime_version=${runtime_tag#v}"
+            } >> "$GITHUB_ENV"
+            echo "Using the runtime release $runtime_tag."
+            exit 0
+          fi
+
+          # 2. The CI artifact of this commit. The build jobs of the CI workflow only run on
+          #    main, so on develop this check usually ends without an artifact.
+          run_id=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${GITHUB_SHA}&per_page=50" \
+            --jq '[.workflow_runs[] | select(.name == "CI")][0].id // empty') || run_id=""
+          if [ -n "$run_id" ]; then
+            echo "Waiting for the CI run $run_id to finish..."
+            state="unknown"
+            for attempt in $(seq 1 90); do
+              state=$(gh run view "$run_id" --json status,conclusion --jq '.status + "/" + (.conclusion // "none")')
+              case "$state" in
+                completed/*)
+                  break
+                  ;;
+              esac
+
+              echo "The CI run $run_id is '$state' (attempt $attempt)..."
+              sleep 20
+            done
+
+            if [ "$state" = "completed/success" ]; then
+              artifact_id=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+                --jq ".artifacts[] | select(.name == \"${RUNTIME_ARTIFACT}\") | .id" | head -n 1)
+              if [ -n "$artifact_id" ]; then
+                {
+                  echo "runtime_source=artifact"
+                  echo "ci_run_id=${run_id}"
+                } >> "$GITHUB_ENV"
+                echo "Using the CI artifact of run $run_id."
+                exit 0
+              fi
+
+              echo "The CI run $run_id has no $RUNTIME_ARTIFACT artifact; falling back to the develop build."
+            else
+              echo "The CI run $run_id is '$state'; falling back to the develop build."
+            fi
+          fi
+
+          # 3. The rolling develop build, which is a self-contained archive (runtime + data).
+          if gh release view "$DEVELOP_RELEASE_TAG" >/dev/null 2>&1 \
+            && gh release view "$DEVELOP_RELEASE_TAG" --json assets --jq '.assets[].name' | grep -qx "$DEVELOP_ASSET"; then
+            echo "runtime_source=develop" >> "$GITHUB_ENV"
+            echo "Using $DEVELOP_ASSET from the $DEVELOP_RELEASE_TAG release."
+            exit 0
+          fi
+
+          echo "::error::No runtime source is available for commit $GITHUB_SHA."
+          echo "Check the CI workflow (https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}/checks)," >&2
+          echo "the $DEVELOP_RELEASE_TAG release and the release list:" >&2
+          gh release list --limit 20 >&2 || true
+          gh run list --limit 10 >&2 || true
+          exit 1
+
+      - name: Download the runtime archive of the release
+        if: env.runtime_source == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download "$runtime_tag" --pattern "$RUNTIME_ASSET" --dir dl
+
+      - name: Download the runtime artifact of the CI run
+        if: env.runtime_source == 'artifact'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.RUNTIME_ARTIFACT }}
+          run-id: ${{ env.ci_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: dl
+
+      - name: Build the runtime archive from the develop build
+        if: env.runtime_source == 'develop'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$DEVELOP_RELEASE_TAG" --pattern "$DEVELOP_ASSET" --dir dl
+          mkdir -p runtime-src
+
+          # The develop archive contains the runtime files plus Data/ and fonts/; the latter
+          # two belong into the data package, so they are excluded here.
+          unzip -q "dl/$DEVELOP_ASSET" -x 'Data/*' 'fonts/*' -d runtime-src
+          test -f runtime-src/Main.exe || { echo "::error::The develop archive does not contain Main.exe." >&2; ls -la runtime-src >&2; exit 1; }
+
+          # Deterministic options keep the hash stable for unchanged content.
+          tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
+            -czf "dl/$RUNTIME_ASSET" -C runtime-src .
+
+          size=$(stat -c%s "dl/$RUNTIME_ASSET")
+          if [ "$size" -gt 209715200 ]; then
+            echo "::error::The runtime archive is unexpectedly large ($size bytes); excluding Data/fonts failed." >&2
+            exit 1
+          fi
+
+          echo "Built a runtime archive of $size bytes from the develop build."
+
+      - name: Download the data archive and determine the runtime version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$data_tag" --pattern "$data_archive" --dir dl
+          test -f "dl/$RUNTIME_ASSET" || { echo "::error::The runtime archive dl/$RUNTIME_ASSET is missing." >&2; ls -l dl >&2; exit 1; }
+          test -f "dl/$data_archive" || { echo "::error::The data archive dl/$data_archive is missing." >&2; ls -l dl >&2; exit 1; }
+
+          if [ "$runtime_source" = "release" ]; then
+            version="$runtime_version"
+            runtime_asset="$RUNTIME_ASSET"
+          else
+            # The content hash identifies the runtime version, and the mirrored asset name
+            # contains it, so an update in flight can not run into a replaced asset.
+            version="develop-$(sha256sum "dl/$RUNTIME_ASSET" | cut -c1-12)"
+            runtime_asset="MuMain-runtime-${version}.tar.gz"
+            cp "dl/$RUNTIME_ASSET" "dl/$runtime_asset"
+          fi
+
+          {
+            echo "runtime_version=${version}"
+            echo "runtime_asset=${runtime_asset}"
+          } >> "$GITHUB_ENV"
+
+          if [ "$runtime_source" != "release" ]; then
+            {
+              echo "runtime_url=https://github.com/${GITHUB_REPOSITORY}/releases/download/${MANIFEST_RELEASE_TAG}/${runtime_asset}"
+              echo "runtime_tag=${MANIFEST_RELEASE_TAG}"
+            } >> "$GITHUB_ENV"
+          fi
+
+          echo "Runtime $version (from $runtime_source, asset $runtime_asset), data $data_id."
+
+      - name: Download the latest launcher, if there is one
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          releases=$(gh release list -R "$LAUNCHER_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 50 --json tagName,createdAt)
+          launcher_tag=$(printf '%s' "$releases" | python3 -c "
+          import json, sys
+          releases = json.load(sys.stdin)
+          candidates = [r for r in releases if r['tagName'].startswith('launcher-v')]
+          candidates.sort(key=lambda r: r['createdAt'], reverse=True)
+          print(candidates[0]['tagName'] if candidates else '')
+          ")
+          if [ -z "$launcher_tag" ]; then
+            echo "No launcher release available yet; the manifest will not contain a launcher update."
+            exit 0
+          fi
+
+          gh release download "$launcher_tag" -R "$LAUNCHER_REPOSITORY" --pattern MuMainLauncher.exe --dir dl
+          {
+            echo "launcher_version=${launcher_tag#launcher-v}"
+            echo "launcher_archive=dl/MuMainLauncher.exe"
+          } >> "$GITHUB_ENV"
+          echo "Using the launcher release $launcher_tag."
+
+      - name: Generate the manifest
+        shell: bash
+        run: |
+          channel="develop"
+          if [ "$GITHUB_REF_NAME" = "main" ] || [[ "$GITHUB_REF_NAME" == v* ]]; then
+            channel="stable"
+          fi
+
+          python3 tools/generate_manifest.py \
+            --runtime-version "$runtime_version" \
+            --runtime-archive "dl/$runtime_asset" \
+            --data-id "$data_id" \
+            --data-archive "dl/$data_archive" \
+            --repository "$GITHUB_REPOSITORY" \
+            --channel "$channel" \
+            --server-host "${{ vars.OPENMU_CONNECT_SERVER_HOST || '100.108.169.118' }}" \
+            --server-host-name "${{ vars.OPENMU_CONNECT_SERVER_HOST_NAME }}" \
+            --server-port "${{ vars.OPENMU_CONNECT_SERVER_PORT || 44405 }}" \
+            ${runtime_url:+--runtime-url "$runtime_url"} \
+            ${runtime_tag:+--runtime-tag "$runtime_tag"} \
+            ${launcher_version:+--launcher-version "$launcher_version"} \
+            ${launcher_archive:+--launcher-archive "$launcher_archive"} \
+            --output manifest.json
+          python3 -m json.tool manifest.json > /dev/null
+
+      - name: Publish the manifest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view "$MANIFEST_RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$MANIFEST_RELEASE_TAG" \
+              --title "Client manifest" \
+              --notes "Manifest and mirrored runtime archives of the latest client build, used by the client launcher. Do not delete." \
+              --latest=false
+          fi
+
+          # Upload the runtime archive first; the manifest must not point to a missing asset.
+          if [ "$runtime_source" != "release" ]; then
+            gh release upload "$MANIFEST_RELEASE_TAG" "dl/$runtime_asset" --clobber
+          fi
+
+          gh release upload "$MANIFEST_RELEASE_TAG" manifest.json --clobber
+
+          # Remove old mirrored runtime assets; they are only needed while a manifest which
+          # references them could still be the current one.
+          if [ "$runtime_source" != "release" ]; then
+            keep="${KEEP_RUNTIME_ASSETS:-3}"
+            old_assets=$(gh release view "$MANIFEST_RELEASE_TAG" --json assets \
+              --jq '.assets[] | "\(.createdAt)\t\(.name)"' \
+              | sort -r \
+              | awk -F'\t' '$2 ~ /^MuMain-runtime-/ { print $2 }' \
+              | tail -n +$((keep + 1)))
+            if [ -n "$old_assets" ]; then
+              printf '%s\n' "$old_assets" | while read -r old_asset; do
+                [ -n "$old_asset" ] || continue
+                echo "Removing the old runtime asset $old_asset."
+                gh release delete-asset "$MANIFEST_RELEASE_TAG" "$old_asset" --yes
+              done
+            fi
+          fi
