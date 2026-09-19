@@ -211,11 +211,13 @@ jobs:
           test -f runtime-src/Main.exe || { echo "::error::The develop archive does not contain Main.exe." >&2; ls -la runtime-src >&2; exit 1; }
 
           # Deterministic options keep the hash stable for unchanged content.
+          # Debug artifacts are not needed on the player machines.
           tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
+            --exclude='*.pdb' --exclude='*.ilk' --exclude='*.exp' \
             -czf "dl/$RUNTIME_ASSET" -C runtime-src .
 
           size=$(stat -c%s "dl/$RUNTIME_ASSET")
-          if [ "$size" -gt 209715200 ]; then
+          if [ "$size" -gt 67108864 ]; then
             echo "::error::The runtime archive is unexpectedly large ($size bytes); excluding Data/fonts failed." >&2
             exit 1
           fi

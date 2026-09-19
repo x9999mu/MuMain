@@ -367,6 +367,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     # Assets of the rolling tag are replaced one by one, so a run cancelled
     # mid-upload would leave the release mixing two commits. Queue instead.
@@ -424,3 +425,12 @@ jobs:
           gh release upload "$RELEASE_TAG" dist/*.zip --clobber
           # Keep the notes pointing at the commit that produced the assets.
           gh release edit "$RELEASE_TAG" --notes-file "$notes_file"
+
+      # The manifest has to point at the archives which were just published. Uploading assets
+      # does not trigger the manifest workflow, so it is started explicitly here.
+      - name: Refresh the client manifest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run client-manifest.yml --ref "$GITHUB_REF_NAME"
