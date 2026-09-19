@@ -212,9 +212,11 @@ jobs:
 
           # Deterministic options keep the hash stable for unchanged content; the fixed
           # timestamp avoids files with a 1970 date on the player machines.
-          # Debug artifacts are not needed on the player machines.
+          # Build artifacts (debug symbols, import libraries, object files) are not needed on
+          # the player machines; MuClient.lib alone would add about 100 MB per installation.
           tar --sort=name --mtime='@1704067200' --owner=0 --group=0 --numeric-owner \
             --exclude='*.pdb' --exclude='*.ilk' --exclude='*.exp' \
+            --exclude='*.lib' --exclude='*.obj' --exclude='*.iobj' \
             -czf "dl/$RUNTIME_ASSET" -C runtime-src .
 
           size=$(stat -c%s "dl/$RUNTIME_ASSET")
