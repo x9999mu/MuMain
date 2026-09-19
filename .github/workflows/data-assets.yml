@@ -44,8 +44,21 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Archive and checksum data
+        id: archive
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Content-addressed: when the release already contains the archive of this data, there
+          # is nothing to do. This also avoids replacing the asset while a client manifest run
+          # could be downloading it.
+          if gh release view "$tag" --json assets --jq '.assets[].name' 2>/dev/null | grep -qx "$archive"; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "The release $tag already contains $archive; nothing to do."
+            exit 0
+          fi
+
+          echo "published=false" >> "$GITHUB_OUTPUT"
           data_timestamp=$(git log -1 --format=%ct -- src/bin/Data src/bin/fonts)
           # The audio assets are published separately, see tools/publish_audio.py.
           tar -czf "$archive" \
@@ -61,6 +74,7 @@ jobs:
           sha256sum --check "${archive}.sha256"
 
       - name: Publish data release
+        if: steps.archive.outputs.published != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

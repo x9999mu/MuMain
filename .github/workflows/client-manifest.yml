@@ -83,16 +83,16 @@ jobs:
           fi
 
           for attempt in $(seq 1 20); do
-            if gh release view "$data_tag" >/dev/null 2>&1; then
-              echo "The data release $data_tag is available."
+            if gh release view "$data_tag" --json assets --jq '.assets[].name' 2>/dev/null | grep -qx "$data_archive"; then
+              echo "The data archive $data_archive is available."
               exit 0
             fi
 
-            echo "Waiting for the data release $data_tag (attempt $attempt)..."
+            echo "Waiting for the data archive $data_archive (attempt $attempt)..."
             sleep 30
           done
 
-          echo "::error::The data release $data_tag is still missing."
+          echo "::error::The data archive $data_archive is still missing."
           echo "Run the $DATA_WORKFLOW workflow and try again." >&2
           exit 1
 
@@ -232,7 +232,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download "$data_tag" --pattern "$data_archive" --dir dl
+          for attempt in 1 2 3 4 5; do
+            if gh release download "$data_tag" --pattern "$data_archive" --dir dl; then
+              break
+            fi
+
+            echo "Download attempt $attempt failed; retrying..."
+            sleep 20
+          done
+
           test -f "dl/$RUNTIME_ASSET" || { echo "::error::The runtime archive dl/$RUNTIME_ASSET is missing." >&2; ls -l dl >&2; exit 1; }
           test -f "dl/$data_archive" || { echo "::error::The data archive dl/$data_archive is missing." >&2; ls -l dl >&2; exit 1; }
 
