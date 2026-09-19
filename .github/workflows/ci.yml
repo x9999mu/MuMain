@@ -97,6 +97,8 @@ jobs:
         if: steps.changed.outputs.count != '0'
         run: |
           echo "Linting ${{ steps.changed.outputs.count }} files..."
+          # cppcheck runs without include paths, so macros which are defined in our own headers
+          # (for example DEFINE_ENUM_FLAG_OPERATORS in Core/Platform/WinCompat.h) are unknown to it.
           cat /tmp/changed-cpp-files.txt | xargs cppcheck \
             -j$(nproc) \
             --max-configs=1 \
@@ -105,6 +107,7 @@ jobs:
             --std=c++20 \
             --language=c++ \
             --suppress=missingInclude \
+            --suppress=unknownMacro \
             --suppress=unmatchedSuppression \
             --suppress=unusedFunction \
             --suppress=*:*/ThirdParty/* \
