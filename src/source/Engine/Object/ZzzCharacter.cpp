@@ -10030,7 +10030,8 @@ void RenderCharacter(CHARACTER* c, OBJECT* o, int Select)
         if (!g_isCharacterBuff(o, eBuff_Cloaking))
         {
             constexpr float CritDamageEffectInterval = 1200.0f;
-            if (g_isCharacterBuff(o, eBuff_AddCriticalDamage) && o->Kind == KIND_PLAYER && o->Type == MODEL_PLAYER && (c->LastCritDamageEffect < WorldTime - CritDamageEffectInterval))
+            if (g_isCharacterBuffActive(o, eBuff_AddCriticalDamage) && o->Kind == KIND_PLAYER &&
+                o->Type == MODEL_PLAYER && (c->LastCritDamageEffect < WorldTime - CritDamageEffectInterval))
             {
                 c->LastCritDamageEffect = WorldTime;
                 bool    renderSkillWave = (rand() % 20) ? true : false;
@@ -10947,7 +10948,7 @@ void RenderCharacter(CHARACTER* c, OBJECT* o, int Select)
             g_SummonSystem.RemoveDamageOfTimeEffect(AT_SKILL_SUMMON_REQUIEM, &c->Object);
         }
 
-        if (g_isCharacterBuff((&c->Object), eBuff_SwellOfMagicPower))
+        if (g_isCharacterBuffActive((&c->Object), eBuff_SwellOfMagicPower))
         {
             if (!g_isCharacterBuff((&c->Object), eBuff_Cloaking))
             {

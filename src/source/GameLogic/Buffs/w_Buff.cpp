@@ -9,6 +9,31 @@
 
 namespace
 {
+// Master skill tree upgrades, mapped back onto the buff they replace. The
+// effect ids come from the server (the client must not invent new ones), the
+// tier decides which icon wins when several are on the same object.
+struct BuffUpgrade
+{
+    eBuffState variant;
+    eBuffState base;
+    int tier;
+};
+
+constexpr BuffUpgrade BUFF_UPGRADES[] = {
+    {EFFECT_GREATER_LIFE_ENHANCED, eBuff_Life, 1},
+    {EFFECT_GREATER_LIFE_MASTERED, eBuff_Life, 2},
+    {EFFECT_MAGIC_CIRCLE_IMPROVED, eBuff_SwellOfMagicPower, 1},
+    {EFFECT_MAGIC_CIRCLE_ENHANCED, eBuff_SwellOfMagicPower, 2},
+    {EFFECT_GREATER_CRITICAL_DAMAGE_EXTENDED, eBuff_AddCriticalDamage, 1},
+    {EFFECT_GREATER_CRITICAL_DAMAGE_MASTERED, eBuff_AddCriticalDamage, 2},
+    {EFFECT_INFINITY_ARROW_IMPROVED, eBuff_InfinityArrow, 1},
+    {EFFECT_BLIND_IMPROVED, eDeBuff_Blind, 1},
+    {EFFECT_POISON_ARROW_IMPROVED, EFFECT_POISON_ARROW, 1},
+    {EFFECT_BLESS_IMPROVED, EFFECT_BLESS, 1},
+    {EFFECT_IRON_DEFENSE_IMPROVED, EFFECT_IRON_DEFENSE, 1},
+    {EFFECT_BLOOD_HOWLING_IMPROVED, EFFECT_BLOOD_HOWLING, 1},
+};
+
 void GetTokenBufflist(std::list<eBuffState>& outtokenbufflist, const eBuffState curbufftype)
 {
     if (curbufftype >= eBuff_CastleRegimentDefense && curbufftype <= eBuff_CastleRegimentAttack3)
@@ -71,6 +96,32 @@ void GetTokenBufflist(std::list<eBuffState>& outtokenbufflist, const eBuffState 
 }
 } // namespace
 
+eBuffState GetBaseBuffState(eBuffState buff)
+{
+    for (const BuffUpgrade& upgrade : BUFF_UPGRADES)
+    {
+        if (upgrade.variant == buff)
+        {
+            return upgrade.base;
+        }
+    }
+
+    return buff;
+}
+
+int GetBuffUpgradeTier(eBuffState buff)
+{
+    for (const BuffUpgrade& upgrade : BUFF_UPGRADES)
+    {
+        if (upgrade.variant == buff)
+        {
+            return upgrade.tier;
+        }
+    }
+
+    return 0;
+}
+
 BuffPtr Buff::Make()
 {
     BuffPtr buff(new Buff());
@@ -101,6 +152,24 @@ bool Buff::isBuff(eBuffState buffstate)
     if (iter != m_Buff.end())
     {
         return true;
+    }
+
+    return false;
+}
+
+bool Buff::isBuffActive(eBuffState buffstate)
+{
+    if (isBuff(buffstate))
+    {
+        return true;
+    }
+
+    for (const BuffUpgrade& upgrade : BUFF_UPGRADES)
+    {
+        if (upgrade.base == buffstate && isBuff(upgrade.variant))
+        {
+            return true;
+        }
     }
 
     return false;
@@ -229,15 +298,23 @@ void Buff::UnRegisterBuff(eBuffState buffstate)
 
     auto iter = m_Buff.find(buffstate);
 
-    if (iter != m_Buff.end())
-    {
-        {
-            m_Buff.erase(iter);
-        }
-    }
-    else
+    if (iter == m_Buff.end())
     {
         return;
+    }
+
+    m_Buff.erase(iter);
+
+    // A master skill tree upgrade replaces the id of the buff it upgrades (Swell
+    // Life arrives as Greater Life Enhanced/Mastered), and the server only ever
+    // clears the upgrade id. The client registers the base id as a stand-in while
+    // it plays the skill effect, so drop that stand-in with the upgrade: otherwise
+    // the base buff sticks to the object forever, its icon stays in the buff window
+    // and the MU Helper keeps seeing the buff as active and never recasts it.
+    const eBuffState basebuff = GetBaseBuffState(buffstate);
+    if (basebuff != buffstate)
+    {
+        UnRegisterBuff(basebuff);
     }
 }
 

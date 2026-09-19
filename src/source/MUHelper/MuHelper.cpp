@@ -639,21 +639,21 @@ int CMuHelper::BuffTarget(CHARACTER* pTargetChar, ActionSkillType iBuffSkill)
     {
     case AT_SKILL_ATTACK:
     case AT_SKILL_ATTACK_STR:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Attack), true, true);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Attack), true, true);
 
     case AT_SKILL_DEFENSE:
     case AT_SKILL_DEFENSE_STR:
     case AT_SKILL_DEFENSE_MASTERY:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Defense), true, true);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Defense), true, true);
 
     case AT_SKILL_INFINITY_ARROW:
     case AT_SKILL_INFINITY_ARROW_STR:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_InfinityArrow), false, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_InfinityArrow), false, false);
 
     case AT_SKILL_SOUL_BARRIER:
     case AT_SKILL_SOUL_BARRIER_STR:
     case AT_SKILL_SOUL_BARRIER_PROFICIENCY:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_WizDefense), true, true);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_WizDefense), true, true);
 
     case AT_SKILL_SWELL_LIFE:
     case AT_SKILL_SWELL_LIFE_STR:
@@ -662,38 +662,38 @@ int CMuHelper::BuffTarget(CHARACTER* pTargetChar, ActionSkillType iBuffSkill)
         {
             return 1;
         }
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Life), true, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Life), true, false);
 
     case AT_SKILL_EXPANSION_OF_WIZARDRY:
     case AT_SKILL_EXPANSION_OF_WIZARDRY_STR:
     case AT_SKILL_EXPANSION_OF_WIZARDRY_MASTERY:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_SwellOfMagicPower), false, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_SwellOfMagicPower), false, false);
 
     case AT_SKILL_ADD_CRITICAL:
     case AT_SKILL_ADD_CRITICAL_STR1:
     case AT_SKILL_ADD_CRITICAL_STR2:
     case AT_SKILL_ADD_CRITICAL_STR3:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_AddCriticalDamage), false, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_AddCriticalDamage), false, false);
 
     case AT_SKILL_ALICE_BERSERKER:
     case AT_SKILL_ALICE_BERSERKER_STR:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Berserker), false, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Berserker), false, false);
 
     case AT_SKILL_ALICE_THORNS:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Thorns), false, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Thorns), false, false);
 
     // Rage Fighter party buffs — self/party AoE, no explicit target needed.
     case AT_SKILL_ATT_UP_OURFORCES:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Att_up_Ourforces), true, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Att_up_Ourforces), true, false);
 
     case AT_SKILL_HP_UP_OURFORCES:
     case AT_SKILL_HP_UP_OURFORCES_STR:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Hp_up_Ourforces), true, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Hp_up_Ourforces), true, false);
 
     case AT_SKILL_DEF_UP_OURFORCES:
     case AT_SKILL_DEF_UP_OURFORCES_STR:
     case AT_SKILL_DEF_UP_OURFORCES_MASTERY:
-        return CastIfMissing(g_isCharacterBuff(obj, eBuff_Def_up_Ourforces), true, false);
+        return CastIfMissing(g_isCharacterBuffActive(obj, eBuff_Def_up_Ourforces), true, false);
 
     default:
         return 1;

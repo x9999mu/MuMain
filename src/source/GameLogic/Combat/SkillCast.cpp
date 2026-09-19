@@ -1158,7 +1158,7 @@ bool SkillElf(CHARACTER* c, ITEM* p)
             int iMana, iSkillMana;
             gSkillManager.GetSkillInformation(Spe_Num, 1, NULL, &iMana, NULL, &iSkillMana);
 
-            if (g_isCharacterBuff(o, eBuff_InfinityArrow))
+            if (g_isCharacterBuffActive(o, eBuff_InfinityArrow))
                 iMana += CharacterMachine->InfinityArrowAdditionalMana;
 
             if (CharacterAttribute->Mana <= iMana)

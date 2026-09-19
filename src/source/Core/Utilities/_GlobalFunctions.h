@@ -21,6 +21,9 @@ BuffStateValueControl& TheBuffStateValueControl();
 #define g_isCharacterBuff( o, bufftype ) \
 	o->m_BuffMap.isBuff( bufftype )
 
+// The buff or any master skill tree upgrade of it (see GetBaseBuffState).
+#define g_isCharacterBuffActive(o, bufftype) o->m_BuffMap.isBuffActive(bufftype)
+
 #define g_isCharacterBufflist( o, bufftypelist ) \
 	o->m_BuffMap.isBuff( bufftypelist )
 

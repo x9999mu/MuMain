@@ -3024,7 +3024,7 @@ void CHARACTER_MACHINE::CalculateMagicDamage()
         Character.MagicDamageMin += Item_data.m_byValue1;
         Character.MagicDamageMax += Item_data.m_byValue1;
     }
-    if (g_isCharacterBuff((&Hero->Object), eBuff_SwellOfMagicPower))
+    if (g_isCharacterBuffActive((&Hero->Object), eBuff_SwellOfMagicPower))
     {
         int iAdd_MP = (CharacterAttribute->Energy / 9) * 0.2f;
         Character.MagicDamageMin += iAdd_MP;

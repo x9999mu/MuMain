@@ -4800,7 +4800,7 @@ BOOL ReceiveMagic(const BYTE* ReceiveBuffer, int Size, BOOL bEncrypted)
     case AT_SKILL_SWELL_LIFE:
     case AT_SKILL_SWELL_LIFE_STR:
     case AT_SKILL_SWELL_LIFE_PROFICIENCY:
-        if (!g_isCharacterBuff(to, eBuff_Life))
+        if (!g_isCharacterBuffActive(to, eBuff_Life))
         {
             DeleteEffect(BITMAP_LIGHT, to, 1);
 

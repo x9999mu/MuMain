@@ -8022,7 +8022,7 @@ void RenderPartObjectBody(BMD* b, OBJECT* o, int Type, float Alpha, int RenderTy
     }
     else if (Type == MODEL_BOLT || Type == MODEL_ARROWS)
     {
-        if (g_isCharacterBuff(o, eBuff_InfinityArrow))
+        if (g_isCharacterBuffActive(o, eBuff_InfinityArrow))
         {
             Vector(1.f, 0.8f, 0.2f, b->BodyLight);
             b->RenderBody(RenderType, Alpha, o->BlendMesh, o->BlendMeshLight, o->BlendMeshTexCoordU, o->BlendMeshTexCoordV);

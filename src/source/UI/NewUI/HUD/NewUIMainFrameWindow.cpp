@@ -2278,7 +2278,8 @@ void SEASON3B::CNewUISkillList::RenderSkillIcon(int iIndex, float x, float y, fl
         || (bySkillType == AT_SKILL_EXPANSION_OF_WIZARDRY_MASTERY)
         )
     {
-        if ((g_isCharacterBuff((&Hero->Object), eBuff_InfinityArrow)) || (g_isCharacterBuff((&Hero->Object), eBuff_SwellOfMagicPower)))
+        if ((g_isCharacterBuffActive((&Hero->Object), eBuff_InfinityArrow)) ||
+            (g_isCharacterBuffActive((&Hero->Object), eBuff_SwellOfMagicPower)))
         {
             bCantSkill = true;
         }

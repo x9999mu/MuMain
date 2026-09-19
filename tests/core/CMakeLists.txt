@@ -92,6 +92,15 @@ mu_add_test(
         MuClient
 )
 
+mu_add_test(
+    NAME test_buff_upgrades
+    SOURCES
+        test_buff_upgrades.cpp
+        ${CMAKE_SOURCE_DIR}/src/source/App/Platform/Windows/Winmain.cpp
+    LINK_LIBS
+        MuClient
+)
+
 add_test(
     NAME msvc_runtime_dll_staging_contract
     COMMAND "${CMAKE_COMMAND}"

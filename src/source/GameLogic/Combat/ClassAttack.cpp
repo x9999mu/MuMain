@@ -74,7 +74,7 @@ void AttackElf(CHARACTER* c, int Skill, float Distance)
 
     int iMana, iSkillMana;
     gSkillManager.GetSkillInformation(Skill, 1, NULL, &iMana, NULL, &iSkillMana);
-    if (g_isCharacterBuff(o, eBuff_InfinityArrow))
+    if (g_isCharacterBuffActive(o, eBuff_InfinityArrow))
         iMana += CharacterMachine->InfinityArrowAdditionalMana;
     if (iMana > CharacterAttribute->Mana)
     {
@@ -273,7 +273,7 @@ void AttackElf(CHARACTER* c, int Skill, float Distance)
     case AT_SKILL_INFINITY_ARROW:
     case AT_SKILL_INFINITY_ARROW_STR:
     {
-        if (g_isCharacterBuff((&Hero->Object), eBuff_InfinityArrow) == false)
+        if (g_isCharacterBuffActive((&Hero->Object), eBuff_InfinityArrow) == false)
         {
             SendRequestMagic(Skill, HeroKey);
             if ((c->Helper.Type == MODEL_HORN_OF_FENRIR)
@@ -1292,7 +1292,7 @@ void AttackWizard(CHARACTER* c, int Skill, float Distance)
     case AT_SKILL_EXPANSION_OF_WIZARDRY_STR:
     case AT_SKILL_EXPANSION_OF_WIZARDRY_MASTERY:
     {
-        if (g_isCharacterBuff((&Hero->Object), eBuff_SwellOfMagicPower) == false)
+        if (g_isCharacterBuffActive((&Hero->Object), eBuff_SwellOfMagicPower) == false)
         {
             SendRequestMagic(Skill, HeroKey);
 
