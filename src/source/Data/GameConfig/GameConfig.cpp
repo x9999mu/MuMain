@@ -79,8 +79,7 @@ void GameConfig::Load()
 
     m_uiLocale = ReadString(CfgSectionUI, CfgKeyUILocale, CfgDefaultUILocale);
     m_fontSelection = ReadString(CfgSectionUI, CfgKeyFont, CfgDefaultFont);
-    m_skipMasterSkillConfirm =
-        ReadBool(CfgSectionUI, CfgKeySkipMasterSkillConfirm, CfgDefaultSkipMasterSkillConfirm);
+    m_skipMasterSkillConfirm = ReadBool(CfgSectionUI, CfgKeySkipMasterSkillConfirm, CfgDefaultSkipMasterSkillConfirm);
 
     m_zoom = ReadInt(CfgSectionCamera, CfgKeyZoom, CfgDefaultZoom);
     m_sortParticleDraws = ReadBool(CfgSectionRender, CfgKeySortParticleDraws, CfgDefaultSortParticleDraws);

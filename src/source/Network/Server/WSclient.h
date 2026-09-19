@@ -3798,8 +3798,8 @@ typedef struct
     BYTE bRandomMoveWhenIdle : 1;  // Index: 33 (bit 4)
     BYTE : 3;                      // Unused bits of Index 33
 
-    WORD AttackDelayMs;       // Index: 34, client-local
-    BYTE _UnusedPadding[33];  // Index: 36 (33 bytes remaining)
+    WORD AttackDelayMs;      // Index: 34, client-local
+    BYTE _UnusedPadding[33]; // Index: 36 (33 bytes remaining)
     char ExtraItems[12][15]; // Index: 69
 } PRECEIVE_MUHELPER_DATA, *LPRECEIVE_MUHELPER_DATA;
 #pragma pack(pop)

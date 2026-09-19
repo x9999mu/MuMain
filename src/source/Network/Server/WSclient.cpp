@@ -6688,7 +6688,9 @@ static void AddCraftingRejectedMessage(BYTE resultCode)
         break;
     case 6: // LackingMixItems
     {
-        wchar_t szText[128] = {0,};
+        wchar_t szText[128] = {
+            0,
+        };
         mu_swprintf(szText, I18N::Game::YouAreLackOfSItems, I18N::Game::Combining);
         g_pSystemLogBox->AddText(szText, SEASON3B::TYPE_ERROR_MESSAGE);
         break;
@@ -6697,8 +6699,8 @@ static void AddCraftingRejectedMessage(BYTE resultCode)
         g_pSystemLogBox->AddText(I18N::Game::IncorrectItem, SEASON3B::TYPE_ERROR_MESSAGE);
         break;
     default: // InvalidItemLevel
-        g_pSystemLogBox->AddText(
-            I18N::Game::TheItemPropertiesDoNotMatchForCombinationCannotCombineItems, SEASON3B::TYPE_ERROR_MESSAGE);
+        g_pSystemLogBox->AddText(I18N::Game::TheItemPropertiesDoNotMatchForCombinationCannotCombineItems,
+                                 SEASON3B::TYPE_ERROR_MESSAGE);
         break;
     }
 }

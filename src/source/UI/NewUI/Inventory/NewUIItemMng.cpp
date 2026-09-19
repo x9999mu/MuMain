@@ -55,7 +55,7 @@ void ParseOptionalItemData(std::span<const BYTE> itemData, ItemOptionFlags flags
         }
     }
 }
-}
+} // namespace
 
 ItemCreationParams ParseItemData(std::span<const BYTE> itemData)
 {

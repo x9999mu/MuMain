@@ -69,7 +69,10 @@ public:
     void SetFontSelection(const std::wstring& font);
 
     // Whether spending a master skill point skips the confirmation dialog.
-    bool GetSkipMasterSkillConfirm() const { return m_skipMasterSkillConfirm; }
+    bool GetSkipMasterSkillConfirm() const
+    {
+        return m_skipMasterSkillConfirm;
+    }
 
     // Chat commands - the favourites and the named templates of the command
     // window. They belong to the installation, not to a character.
