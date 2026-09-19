@@ -286,6 +286,46 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "Using the launcher release $launcher_tag."
 
+      # The audio assets (Data/Sound, Data/Music) are not part of the git repository because of
+      # their size; they are published as an asset of the manifest release with tools/publish_audio.py.
+      - name: Resolve the audio package
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          assets=$(gh release view "$MANIFEST_RELEASE_TAG" --json assets 2>/dev/null || echo '{"assets":[]}')
+          read -r audio_name audio_size audio_digest < <(printf '%s' "$assets" | python3 -c "
+          import json, sys
+          assets = json.load(sys.stdin).get('assets', [])
+          audio = [a for a in assets if a['name'].startswith('MuMain-audio-')]
+          audio.sort(key=lambda a: a['createdAt'], reverse=True)
+          if audio:
+              asset = audio[0]
+              digest = (asset.get('digest') or '').replace('sha256:', '')
+              print(asset['name'], asset['size'], digest or '-')
+          ") || true
+
+          if [ -z "${audio_name:-}" ]; then
+            echo "No audio package is published yet; the manifest will not contain audio."
+            exit 0
+          fi
+
+          if [ "$audio_digest" = "-" ]; then
+            echo "The audio asset has no digest; downloading it to calculate the hash."
+            gh release download "$MANIFEST_RELEASE_TAG" --pattern "$audio_name" --dir dl
+            audio_digest=$(sha256sum "dl/$audio_name" | cut -d' ' -f1)
+          fi
+
+          audio_id="${audio_name#MuMain-audio-}"
+          audio_id="${audio_id%.tar.gz}"
+          {
+            echo "audio_id=${audio_id}"
+            echo "audio_size=${audio_size}"
+            echo "audio_sha256=${audio_digest}"
+            echo "audio_url=https://github.com/${GITHUB_REPOSITORY}/releases/download/${MANIFEST_RELEASE_TAG}/${audio_name}"
+          } >> "$GITHUB_ENV"
+          echo "Using the audio package $audio_name ($audio_size bytes)."
+
       - name: Generate the manifest
         shell: bash
         run: |
@@ -306,6 +346,7 @@ jobs:
             --server-port "${{ vars.OPENMU_CONNECT_SERVER_PORT || 44405 }}" \
             ${runtime_url:+--runtime-url "$runtime_url"} \
             ${runtime_tag:+--runtime-tag "$runtime_tag"} \
+            ${audio_id:+--audio-id "$audio_id" --audio-url "$audio_url" --audio-sha256 "$audio_sha256" --audio-size "$audio_size" --audio-tag "$MANIFEST_RELEASE_TAG"} \
             ${launcher_version:+--launcher-version "$launcher_version"} \
             ${launcher_archive:+--launcher-archive "$launcher_archive"} \
             --output manifest.json

@@ -80,6 +80,18 @@ def build_manifest(args: argparse.Namespace) -> dict:
         "preserve": ["config.ini"],
     }
 
+    if args.audio_id and args.audio_url and args.audio_sha256 and args.audio_size:
+        manifest["audio"] = {
+            "id": args.audio_id,
+            "tag": args.audio_tag or args.runtime_tag or args.repository,
+            "archive": {
+                "url": args.audio_url,
+                "size": args.audio_size,
+                "sha256": args.audio_sha256,
+                "format": "tar.gz",
+            },
+        }
+
     if args.launcher_version and args.launcher_archive:
         launcher_name = os.path.basename(args.launcher_archive)
         launcher_tag = f"launcher-v{args.launcher_version}"
@@ -109,6 +121,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--runtime-tag", help="Release tag which hosts the runtime archive, e.g. client-latest")
     parser.add_argument("--data-url", help="Explicit url of the data archive; overrides --base-url and the release url")
     parser.add_argument("--launcher-url", help="Explicit url of the launcher executable")
+    parser.add_argument("--audio-id", help="Content id of the audio package (Data/Sound and Data/Music)")
+    parser.add_argument("--audio-url", help="Url of the audio archive")
+    parser.add_argument("--audio-sha256", help="sha256 of the audio archive")
+    parser.add_argument("--audio-size", type=int, help="Size of the audio archive in bytes")
+    parser.add_argument("--audio-tag", help="Release tag which hosts the audio archive")
     parser.add_argument("--channel", default="stable", help="Release channel")
     parser.add_argument("--server-host", default="100.108.169.118", help="Connect server address")
     parser.add_argument("--server-host-name", default="", help="Optional connect server host name")

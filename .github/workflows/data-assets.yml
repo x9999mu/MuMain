@@ -47,12 +47,15 @@ jobs:
         shell: bash
         run: |
           data_timestamp=$(git log -1 --format=%ct -- src/bin/Data src/bin/fonts)
+          # The audio assets are published separately, see tools/publish_audio.py.
           tar -czf "$archive" \
             --sort=name \
             --mtime="@${data_timestamp}" \
             --owner=0 \
             --group=0 \
             --numeric-owner \
+            --exclude='Data/Sound' \
+            --exclude='Data/Music' \
             -C src/bin Data fonts
           sha256sum "$archive" > "${archive}.sha256"
           sha256sum --check "${archive}.sha256"
