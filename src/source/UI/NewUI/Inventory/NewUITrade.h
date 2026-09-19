@@ -132,6 +132,11 @@ namespace SEASON3B
         int GetPointedItemIndexMyInven();
         int GetPointedItemIndexYourInven();
 
+        // Moves the item under the mouse between the inventory and the trade window. It is used
+        // for right clicks, so items which would be consumed by a right click otherwise (like the
+        // Box of Kundun) can be offered in a trade without dragging them.
+        bool ProcessMyInvenItemAutoMove(CNewUIInventoryCtrl* sourceCtrl = nullptr);
+
     private:
         void LoadImages();
         void UnloadImages();

@@ -144,6 +144,13 @@ bool CNewUITrade::UpdateMouseEvent()
             MouseRButton = false;
             MouseRButtonPop = false;
             MouseRButtonPush = false;
+
+            // A right click on an item which I already offered moves it back into my inventory.
+            if (m_pMyInvenCtrl != nullptr && m_pMyInvenCtrl->CheckPtInRect(MouseX, MouseY))
+            {
+                ProcessMyInvenItemAutoMove(m_pMyInvenCtrl);
+            }
+
             return false;
         }
 
@@ -461,6 +468,68 @@ void CNewUITrade::ProcessMyInvenCtrl()
                 SendRequestItemToTrade(pItemObj, nSrcIndex, nDstIndex);
         }
     }
+}
+
+bool CNewUITrade::ProcessMyInvenItemAutoMove(CNewUIInventoryCtrl* sourceCtrl)
+{
+    if (m_pMyInvenCtrl == nullptr || CNewUIInventoryCtrl::GetPickedItem() != nullptr)
+    {
+        return false;
+    }
+
+    if (sourceCtrl == nullptr)
+    {
+        sourceCtrl = g_pMyInventory->GetInventoryCtrl();
+    }
+
+    if (sourceCtrl == nullptr)
+    {
+        return false;
+    }
+
+    ITEM* pItemObj = sourceCtrl->FindItemAtPt(MouseX, MouseY);
+    if (pItemObj == nullptr)
+    {
+        return false;
+    }
+
+    const int nSrcIndex = sourceCtrl->GetIndexByItem(pItemObj);
+    if (nSrcIndex < 0)
+    {
+        return false;
+    }
+
+    const ITEM_ATTRIBUTE* pItemAttr = &ItemAttribute[pItemObj->Type];
+
+    if (sourceCtrl == m_pMyInvenCtrl)
+    {
+        CNewUIInventoryCtrl* pInventoryCtrl = g_pMyInventory->GetInventoryCtrl();
+        const int nDstIndex = pInventoryCtrl->FindEmptySlot(pItemAttr->Width, pItemAttr->Height);
+        if (nDstIndex == -1)
+        {
+            return false;
+        }
+
+        SendRequestItemToMyInven(pItemObj, nSrcIndex, nDstIndex);
+        ::PlayBuffer(SOUND_GET_ITEM01);
+        return true;
+    }
+
+    if (sourceCtrl->GetStorageType() != STORAGE_TYPE::INVENTORY)
+    {
+        return false;
+    }
+
+    const int nDstIndex = m_pMyInvenCtrl->FindEmptySlot(pItemAttr->Width, pItemAttr->Height);
+    if (nDstIndex == -1 || !m_pMyInvenCtrl->CanMove(nDstIndex, pItemObj))
+    {
+        return false;
+    }
+
+    // This also warns about items which cannot be traded and resets my confirmation state.
+    SendRequestItemToTrade(pItemObj, nSrcIndex, nDstIndex);
+    ::PlayBuffer(SOUND_GET_ITEM01);
+    return true;
 }
 
 void CNewUITrade::SendRequestItemToTrade(ITEM* pItemObj, int nInvenIndex,

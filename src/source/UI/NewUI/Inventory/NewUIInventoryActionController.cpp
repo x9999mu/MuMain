@@ -5,6 +5,7 @@
 #include "UI/NewUI/Inventory/NewUIInventoryActionController.h"
 #include "UI/NewUI/Inventory/NewUIMyInventory.h"
 #include "UI/NewUI/Inventory/NewUIInventoryCtrl.h"
+#include "UI/NewUI/Inventory/NewUITrade.h"
 #include "UI/NewUI/NewUISystem.h"
 #include "UI/NewUI/Dialogs/NewUICustomMessageBox.h"
 #include "Engine/Object/ZzzInventory.h"
@@ -161,6 +162,11 @@ bool CNewUIInventoryActionController::HandleRightClick(CNewUIInventoryCtrl* targ
         return HandleMixAutoMove(targetControl);
     }
 
+    if (g_pNewUISystem->IsVisible(INTERFACE_TRADE) && g_pNewUISystem->IsVisible(INTERFACE_INVENTORY))
+    {
+        return HandleTradeAutoMove(targetControl);
+    }
+
     if (g_pNewUISystem->IsVisible(INTERFACE_INVENTORY)
         && !g_pNewUISystem->IsVisible(INTERFACE_NPCSHOP)
         && !g_pNewUISystem->IsVisible(INTERFACE_TRADE)
@@ -196,6 +202,14 @@ bool CNewUIInventoryActionController::HandleMixAutoMove(CNewUIInventoryCtrl* tar
     // All crafting NPC dialogs (Chaos Machine, Seed Master, Elphis, Osbourne, ...) share the
     // single mix window, so routing the right-click here covers every crafting NPC at once.
     return g_pMixInventory->ProcessMyInvenItemAutoMove(targetControl);
+}
+
+bool CNewUIInventoryActionController::HandleTradeAutoMove(CNewUIInventoryCtrl* targetControl) const
+{
+    // Items which are consumed by a right click (for example the Box of Kundun) would be used
+    // instead of being offered, so the trade window handles the right click itself.
+    CNewUITrade* pTrade = g_pNewUISystem->GetUI_NewTrade();
+    return pTrade != nullptr && pTrade->ProcessMyInvenItemAutoMove(targetControl);
 }
 
 bool CNewUIInventoryActionController::HandleSellToNPC(CNewUIInventoryCtrl* targetControl) const
