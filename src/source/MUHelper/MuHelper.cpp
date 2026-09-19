@@ -284,8 +284,7 @@ void CMuHelper::AddTarget(int iTargetId, bool bIsAttacking)
         _targetsLock.unlock();
     }
 
-    if (m_config.bUseSelfDefense && IsMonster(pTarget) &&
-        (m_iCurrentTarget == -1 || !IsTargetValid(m_iCurrentTarget)))
+    if (m_config.bUseSelfDefense && IsMonster(pTarget) && (m_iCurrentTarget == -1 || !IsTargetValid(m_iCurrentTarget)))
     {
         m_iCurrentTarget = iTargetId;
     }
