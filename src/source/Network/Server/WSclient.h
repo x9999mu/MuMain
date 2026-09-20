@@ -1033,6 +1033,8 @@ typedef struct
     WORD Level;
     BYTE ClassId;
     WORD Map;
+    BYTE PositionX;
+    BYTE PositionY;
 } PRECEIVE_SERVER_PLAYER, *LPPRECEIVE_SERVER_PLAYER;
 
 #pragma pack(pop)

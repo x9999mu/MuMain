@@ -7459,6 +7459,8 @@ void ReceiveServerPlayerList(const BYTE* ReceiveBuffer, int Size)
         player.Level = entry->Level;
         player.ClassId = entry->ClassId;
         player.Map = entry->Map;
+        player.PositionX = entry->PositionX;
+        player.PositionY = entry->PositionY;
     }
 
     GameLogic::Social::ApplyServerPlayerListChunk(header->ChunkIndex, header->TotalChunks, count > 0 ? players : nullptr, count);

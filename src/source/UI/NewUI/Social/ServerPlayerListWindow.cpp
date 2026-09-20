@@ -9,6 +9,7 @@
 #include "UI/NewUI/NewUISystem.h"
 #include "World/MapInfra/MapManager.h"
 
+#include <algorithm>
 #include <cwchar>
 #include <iterator>
 #include <utility>
@@ -18,12 +19,23 @@ using namespace SEASON3B;
 namespace
 {
     /// <summary>
-    /// Appended to texts which are too wide for their column.
+    /// Appended to texts which are too wide for their field.
     /// </summary>
     constexpr wchar_t TextElision[] = L"...";
+
+    //. The group box of a party member uses these backdrops; keeping them makes the
+    //. rows of this window look exactly like the ones of the party window.
+    constexpr unsigned int TitleBackdropColor = 0xE6000000u;
+    constexpr unsigned int ContentBackdropColor = 0x99000000u;
 }
 
-CNewUIServerPlayerListWindow::CNewUIServerPlayerListWindow() = default;
+CNewUIServerPlayerListWindow::CNewUIServerPlayerListWindow()
+{
+    m_pNewUIMng = nullptr;
+    m_Pos.x = m_Pos.y = 0;
+    m_pScrollBar = nullptr;
+    m_dwNextRefresh = 0;
+}
 
 CNewUIServerPlayerListWindow::~CNewUIServerPlayerListWindow()
 {
@@ -41,7 +53,7 @@ bool CNewUIServerPlayerListWindow::Create(CNewUIManager* pNewUIMng, int x, int y
     m_pNewUIMng->AddUIObj(INTERFACE_SERVER_PLAYERS, this);
 
     m_pScrollBar = new CNewUIScrollBar();
-    m_pScrollBar->Create(x, y, GetContentHeight());
+    m_pScrollBar->Create(x, y, SCROLLBAR_HEIGHT);
 
     SetPos(x, y);
     LoadImages();
@@ -74,37 +86,59 @@ void CNewUIServerPlayerListWindow::SetPos(int x, int y)
     m_Pos.x = x;
     m_Pos.y = y;
 
-    m_BtnExit.ChangeButtonInfo(m_Pos.x + 13, m_Pos.y + WINDOW_HEIGHT - 37, 36, 29);
+    m_BtnExit.ChangeButtonInfo(
+        m_Pos.x + EXIT_BUTTON_LEFT,
+        m_Pos.y + EXIT_BUTTON_TOP,
+        EXIT_BUTTON_WIDTH,
+        EXIT_BUTTON_HEIGHT);
 
     if (m_pScrollBar != nullptr)
     {
-        m_pScrollBar->SetPos(GetScrollBarX(), m_Pos.y + WINDOW_CONTENT_TOP + COLUMN_HEADER_HEIGHT);
+        m_pScrollBar->SetPos(m_Pos.x + SCROLLBAR_LEFT, m_Pos.y + ROWS_TOP);
     }
 }
 
 void CNewUIServerPlayerListWindow::LoadImages()
 {
-    LoadBitmap(L"Interface\\newui_msgbox_back.jpg", IMAGE_SERVER_PLAYER_WINDOW_BACK, GL_LINEAR);
-    LoadBitmap(L"Interface\\newui_item_back01.tga", IMAGE_SERVER_PLAYER_WINDOW_TOP, GL_LINEAR);
-    LoadBitmap(L"Interface\\newui_item_back02-L.tga", IMAGE_SERVER_PLAYER_WINDOW_LEFT, GL_LINEAR);
-    LoadBitmap(L"Interface\\newui_item_back02-R.tga", IMAGE_SERVER_PLAYER_WINDOW_RIGHT, GL_LINEAR);
-    LoadBitmap(L"Interface\\newui_item_back03.tga", IMAGE_SERVER_PLAYER_WINDOW_BOTTOM, GL_LINEAR);
-    LoadBitmap(L"Interface\\newui_exit_00.tga", IMAGE_SERVER_PLAYER_WINDOW_BTN_EXIT, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_msgbox_back.jpg", IMAGE_SERVER_PLAYER_BASE_WINDOW_BACK, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_item_back01.tga", IMAGE_SERVER_PLAYER_BASE_WINDOW_TOP, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_item_back02-L.tga", IMAGE_SERVER_PLAYER_BASE_WINDOW_LEFT, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_item_back02-R.tga", IMAGE_SERVER_PLAYER_BASE_WINDOW_RIGHT, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_item_back03.tga", IMAGE_SERVER_PLAYER_BASE_WINDOW_BOTTOM, GL_LINEAR);
+    LoadBitmap(L"Interface\\newui_exit_00.tga", IMAGE_SERVER_PLAYER_BASE_WINDOW_BTN_EXIT, GL_LINEAR);
+
+    LoadBitmap(L"Interface\\newui_item_table01(L).tga", IMAGE_SERVER_PLAYER_TABLE_TOP_LEFT);
+    LoadBitmap(L"Interface\\newui_item_table01(R).tga", IMAGE_SERVER_PLAYER_TABLE_TOP_RIGHT);
+    LoadBitmap(L"Interface\\newui_item_table02(L).tga", IMAGE_SERVER_PLAYER_TABLE_BOTTOM_LEFT);
+    LoadBitmap(L"Interface\\newui_item_table02(R).tga", IMAGE_SERVER_PLAYER_TABLE_BOTTOM_RIGHT);
+    LoadBitmap(L"Interface\\newui_item_table03(Up).tga", IMAGE_SERVER_PLAYER_TABLE_TOP_PIXEL);
+    LoadBitmap(L"Interface\\newui_item_table03(Dw).tga", IMAGE_SERVER_PLAYER_TABLE_BOTTOM_PIXEL);
+    LoadBitmap(L"Interface\\newui_item_table03(L).tga", IMAGE_SERVER_PLAYER_TABLE_LEFT_PIXEL);
+    LoadBitmap(L"Interface\\newui_item_table03(R).tga", IMAGE_SERVER_PLAYER_TABLE_RIGHT_PIXEL);
 }
 
 void CNewUIServerPlayerListWindow::UnloadImages()
 {
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_BACK);
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_TOP);
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_LEFT);
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_RIGHT);
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_BOTTOM);
-    DeleteBitmap(IMAGE_SERVER_PLAYER_WINDOW_BTN_EXIT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_BACK);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_TOP);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_LEFT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_RIGHT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_BOTTOM);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_BASE_WINDOW_BTN_EXIT);
+
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_RIGHT_PIXEL);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_LEFT_PIXEL);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_PIXEL);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_TOP_PIXEL);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_RIGHT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_LEFT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_TOP_RIGHT);
+    DeleteBitmap(IMAGE_SERVER_PLAYER_TABLE_TOP_LEFT);
 }
 
 void CNewUIServerPlayerListWindow::InitButtons()
 {
-    m_BtnExit.ChangeButtonImgState(true, IMAGE_SERVER_PLAYER_WINDOW_BTN_EXIT);
+    m_BtnExit.ChangeButtonImgState(true, IMAGE_SERVER_PLAYER_BASE_WINDOW_BTN_EXIT);
     m_BtnExit.ChangeToolTipText(&I18N::Game::Close, true);
 }
 
@@ -141,14 +175,15 @@ bool CNewUIServerPlayerListWindow::Update()
         RequestPlayerList();
     }
 
-    if (GameLogic::Social::GetServerPlayerListRevision() != m_lastListRevision)
+    const unsigned int revision = GameLogic::Social::GetServerPlayerListRevision();
+    if (revision != m_lastListRevision)
     {
-        m_lastListRevision = GameLogic::Social::GetServerPlayerListRevision();
+        m_lastListRevision = revision;
         RebuildDisplayRows();
         UpdateScrollBarExtent();
     }
 
-    if (m_pScrollBar != nullptr)
+    if (m_pScrollBar != nullptr && m_pScrollBar->IsVisible())
     {
         m_pScrollBar->Update();
     }
@@ -178,8 +213,10 @@ void CNewUIServerPlayerListWindow::RebuildDisplayRows()
 
         DisplayRow row;
         row.PlayerIndex = i;
-        row.ClassText = FitTextToColumn(gCharacterManager.GetCharacterClassText(clientClass), CLASS_COLUMN_WIDTH);
-        row.MapText = FitTextToColumn(gMapManager.GetMapName(player.Map), MAP_COLUMN_WIDTH);
+        row.ClassText = FitTextToWidth(gCharacterManager.GetCharacterClassText(clientClass), CLASS_WIDTH);
+        row.MapText = FitTextToWidth(gMapManager.GetMapName(player.Map), MAP_WIDTH);
+        mu_swprintf_s(row.LevelText, std::size(row.LevelText), L"%d", player.Level);
+        mu_swprintf_s(row.PositionText, std::size(row.PositionText), L"(%d,%d)", player.PositionX, player.PositionY);
         m_displayRows.push_back(std::move(row));
     }
 }
@@ -191,7 +228,7 @@ void CNewUIServerPlayerListWindow::UpdateScrollBarExtent()
         return;
     }
 
-    const int scrollableRows = static_cast<int>(m_displayRows.size()) - GetVisibleRowCount();
+    const int scrollableRows = static_cast<int>(m_displayRows.size()) - VISIBLE_ROW_COUNT;
     const bool isScrollable = scrollableRows > 0;
 
     m_pScrollBar->Show(isScrollable);
@@ -209,22 +246,17 @@ void CNewUIServerPlayerListWindow::UpdateScrollBarExtent()
     }
 }
 
-int CNewUIServerPlayerListWindow::GetScrollBarX() const
-{
-    const int columnsWidth = NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH + MAP_COLUMN_WIDTH;
-    return m_Pos.x + WINDOW_CONTENT_LEFT + columnsWidth + COLUMN_GAP;
-}
-
 bool CNewUIServerPlayerListWindow::UpdateMouseEvent()
 {
-    if (m_pScrollBar != nullptr)
+    // The scroll bar widget renders and handles the mouse regardless of its own
+    // visibility, so it's driven by the owner only while it's needed.
+    if (m_pScrollBar != nullptr && m_pScrollBar->IsVisible())
     {
         m_pScrollBar->UpdateMouseEvent();
     }
 
-    if (m_BtnExit.UpdateMouseEvent())
+    if (BtnProcess())
     {
-        g_pNewUISystem->Hide(INTERFACE_SERVER_PLAYERS);
         return false;
     }
 
@@ -234,6 +266,22 @@ bool CNewUIServerPlayerListWindow::UpdateMouseEvent()
     }
 
     return true;
+}
+
+bool CNewUIServerPlayerListWindow::BtnProcess()
+{
+    if (g_pNewUISystem->HandleFrameCornerClose(m_Pos, INTERFACE_SERVER_PLAYERS))
+    {
+        return true;
+    }
+
+    if (m_BtnExit.UpdateMouseEvent())
+    {
+        g_pNewUISystem->Hide(INTERFACE_SERVER_PLAYERS);
+        return true;
+    }
+
+    return false;
 }
 
 bool CNewUIServerPlayerListWindow::UpdateKeyEvent()
@@ -259,8 +307,17 @@ bool CNewUIServerPlayerListWindow::Render()
     const DWORD previousBackgroundColor = g_pRenderText->GetBgColor();
     g_pRenderText->SetBgColor(RGBA(0, 0, 0, 0));
 
-    RenderFrame();
-    RenderColumnHeader();
+    EnableAlphaTest();
+
+    RenderImage(IMAGE_SERVER_PLAYER_BASE_WINDOW_BACK, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), float(WINDOW_HEIGHT));
+    RenderImage(IMAGE_SERVER_PLAYER_BASE_WINDOW_TOP, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), 64.f);
+    RenderImage(IMAGE_SERVER_PLAYER_BASE_WINDOW_LEFT, m_Pos.x, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
+    RenderImage(IMAGE_SERVER_PLAYER_BASE_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
+    RenderImage(IMAGE_SERVER_PLAYER_BASE_WINDOW_BOTTOM, m_Pos.x, m_Pos.y + float(WINDOW_HEIGHT) - 45.f, float(WINDOW_WIDTH), 45.f);
+
+    g_pRenderText->SetFont(g_hFontBold);
+    g_pRenderText->SetTextColor(255, 255, 255, 255);
+    g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 12, I18N::Game::ServerPlayers, WINDOW_WIDTH, 0, RT3_SORT_CENTER);
 
     if (m_displayRows.empty())
     {
@@ -268,101 +325,100 @@ bool CNewUIServerPlayerListWindow::Render()
     }
     else
     {
-        RenderPlayerRows();
+        const int firstRow = m_pScrollBar != nullptr ? m_pScrollBar->GetCurPos() : 0;
+        const int totalRows = static_cast<int>(m_displayRows.size());
+        for (int rowIndex = 0; rowIndex < VISIBLE_ROW_COUNT; rowIndex++)
+        {
+            const int displayRowIndex = firstRow + rowIndex;
+            if (displayRowIndex >= totalRows)
+            {
+                break;
+            }
+
+            RenderPlayerRow(rowIndex, m_displayRows[displayRowIndex]);
+        }
     }
 
-    if (m_pScrollBar != nullptr)
+    if (m_pScrollBar != nullptr && m_pScrollBar->IsVisible())
     {
         m_pScrollBar->Render();
     }
 
     m_BtnExit.Render();
 
+    DisableAlphaBlend();
+
     g_pRenderText->SetBgColor(previousBackgroundColor);
 
     return true;
 }
 
-void CNewUIServerPlayerListWindow::RenderFrame() const
+void CNewUIServerPlayerListWindow::RenderGroupBox(int x, int y, int width, int height, int titleWidth, int titleHeight) const
 {
     EnableAlphaTest();
 
-    RenderImage(IMAGE_SERVER_PLAYER_WINDOW_BACK, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), float(WINDOW_HEIGHT));
-    RenderImage(IMAGE_SERVER_PLAYER_WINDOW_TOP, m_Pos.x, m_Pos.y, float(WINDOW_WIDTH), 64.f);
-    RenderImage(IMAGE_SERVER_PLAYER_WINDOW_LEFT, m_Pos.x, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
-    RenderImage(IMAGE_SERVER_PLAYER_WINDOW_RIGHT, m_Pos.x + float(WINDOW_WIDTH) - 21.f, m_Pos.y + 64.f, 21.f, float(WINDOW_HEIGHT) - 64.f - 45.f);
-    RenderImage(IMAGE_SERVER_PLAYER_WINDOW_BOTTOM, m_Pos.x, m_Pos.y + float(WINDOW_HEIGHT) - 45.f, float(WINDOW_WIDTH), 45.f);
+    RenderColorQuadARGB(float(x + 3), float(y + 2), float(titleWidth - 8), float(titleHeight), TitleBackdropColor);
+    RenderColorQuadARGB(float(x + 3), float(y + 2 + titleHeight), float(width - 7), float(height - titleHeight - 7), ContentBackdropColor);
 
-    g_pRenderText->SetFont(g_hFontBold);
-    g_pRenderText->SetTextColor(0xFFE0C080);
-    g_pRenderText->RenderText(m_Pos.x, m_Pos.y + 12, I18N::Game::ServerPlayers, WINDOW_WIDTH, 0, RT3_SORT_CENTER);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_TOP_LEFT, x, y, 14, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_TOP_RIGHT, x + titleWidth - 14, y, 14, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_TOP_RIGHT, x + width - 14, y + titleHeight, 14, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_LEFT, x, y + height - 14, 14, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_RIGHT, x + width - 14, y + height - 14, 14, 14);
 
-    DisableAlphaBlend();
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_TOP_PIXEL, x + 6, y, titleWidth - 12, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_RIGHT_PIXEL, x + titleWidth - 14, y + 6, 14, titleHeight - 6);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_TOP_PIXEL, x + titleWidth - 5, y + titleHeight, width - titleWidth - 6, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_RIGHT_PIXEL, x + width - 14, y + titleHeight + 6, 14, height - titleHeight - 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_BOTTOM_PIXEL, x + 6, y + height - 14, width - 12, 14);
+    RenderImage(IMAGE_SERVER_PLAYER_TABLE_LEFT_PIXEL, x, y + 6, 14, height - 14);
 }
 
-void CNewUIServerPlayerListWindow::RenderColumnHeader() const
-{
-    const int x = m_Pos.x + WINDOW_CONTENT_LEFT;
-    const int y = m_Pos.y + WINDOW_CONTENT_TOP;
-
-    g_pRenderText->SetFont(g_hFont);
-    g_pRenderText->SetTextColor(0xFFB0B0B0);
-    g_pRenderText->SetBgColor(0x00000000);
-
-    g_pRenderText->RenderText(x, y, I18N::Game::Name, NAME_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH, y, I18N::Game::Level, LEVEL_COLUMN_WIDTH, 0, RT3_SORT_CENTER);
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH, y, I18N::Game::Class, CLASS_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH, y, I18N::Game::Map, MAP_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
-}
-
-void CNewUIServerPlayerListWindow::RenderPlayerRows() const
-{
-    const int totalRows = static_cast<int>(m_displayRows.size());
-    const int firstRow = m_pScrollBar != nullptr ? m_pScrollBar->GetCurPos() : 0;
-    const int visibleRows = GetVisibleRowCount();
-    const int rowX = m_Pos.x + WINDOW_CONTENT_LEFT;
-    const int firstRowY = m_Pos.y + WINDOW_CONTENT_TOP + COLUMN_HEADER_HEIGHT;
-
-    for (int rowIndex = 0; rowIndex < visibleRows; rowIndex++)
-    {
-        const int displayRowIndex = firstRow + rowIndex;
-        if (displayRowIndex >= totalRows)
-        {
-            break;
-        }
-
-        RenderPlayerRow(rowIndex, m_displayRows[displayRowIndex], rowX, firstRowY);
-    }
-}
-
-void CNewUIServerPlayerListWindow::RenderPlayerRow(int rowIndex, const DisplayRow& row, int x, int y) const
+void CNewUIServerPlayerListWindow::RenderPlayerRow(int rowIndex, const DisplayRow& row) const
 {
     const auto& player = GameLogic::Social::GetServerPlayer(row.PlayerIndex);
-    const int rowY = y + ((ROW_HEIGHT + ROW_MARGIN) * rowIndex);
+    const int rowX = m_Pos.x + ROWS_LEFT;
+    const int rowY = m_Pos.y + ROWS_TOP + (rowIndex * ROW_HEIGHT);
+
+    RenderGroupBox(rowX, rowY, ROW_WIDTH, ROW_BOX_HEIGHT, ROW_TITLE_WIDTH, ROW_TITLE_HEIGHT);
+
+    // Same arrangement as a party member row: the name sits in the title band, the
+    // map and the coordinates share the second line, and the third line holds the
+    // level and the class instead of the health values.
+    g_pRenderText->SetFont(g_hFontBold);
+    g_pRenderText->SetTextColor(255, 255, 255, 255);
+    g_pRenderText->RenderText(rowX, rowY + 8, player.Name, ROW_TITLE_WIDTH, 0, RT3_SORT_CENTER);
 
     g_pRenderText->SetFont(g_hFont);
-    g_pRenderText->SetTextColor(0xFFFFFFFFu);
-
-    g_pRenderText->RenderText(x, rowY, player.Name, NAME_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
-
-    wchar_t levelText[8] = { 0, };
-    mu_swprintf_s(levelText, std::size(levelText), L"%d", player.Level);
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH, rowY, levelText, LEVEL_COLUMN_WIDTH, 0, RT3_SORT_CENTER);
-
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH, rowY, row.ClassText.c_str(), CLASS_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
-
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH, rowY, row.MapText.c_str(), MAP_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->SetTextColor(194, 194, 194, 255);
+    g_pRenderText->RenderText(rowX + 10, rowY + 26, row.MapText.c_str(), MAP_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(rowX + 85, rowY + 26, row.PositionText, POSITION_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(rowX + 8, rowY + 51, row.LevelText, LEVEL_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(rowX + 42, rowY + 51, row.ClassText.c_str(), CLASS_WIDTH, 0, RT3_SORT_RIGHT);
 }
 
-std::wstring CNewUIServerPlayerListWindow::FitTextToColumn(const wchar_t* text, int columnWidth)
+void CNewUIServerPlayerListWindow::RenderEmptyListHint() const
 {
-    if (text == nullptr || text[0] == L'\0' || columnWidth <= 0)
+    g_pRenderText->SetFont(g_hFont);
+    g_pRenderText->SetTextColor(194, 194, 194, 255);
+    g_pRenderText->RenderText(
+        m_Pos.x,
+        m_Pos.y + ROWS_TOP + 20,
+        I18N::Game::NoPlayersOnline,
+        WINDOW_WIDTH,
+        0,
+        RT3_SORT_CENTER);
+}
+
+std::wstring CNewUIServerPlayerListWindow::FitTextToWidth(const wchar_t* text, int maxWidth)
+{
+    if (text == nullptr || text[0] == L'\0' || maxWidth <= 0)
     {
         return std::wstring();
     }
 
     const auto length = static_cast<int>(wcslen(text));
-    if (g_pRenderText->MeasureText(text, length).cx <= columnWidth)
+    if (g_pRenderText->MeasureText(text, length).cx <= maxWidth)
     {
         return std::wstring(text, length);
     }
@@ -374,37 +430,13 @@ std::wstring CNewUIServerPlayerListWindow::FitTextToColumn(const wchar_t* text, 
 
         std::wstring candidate = shortened;
         candidate += TextElision;
-        if (g_pRenderText->MeasureText(candidate.c_str(), static_cast<int>(candidate.size())).cx <= columnWidth)
+        if (g_pRenderText->MeasureText(candidate.c_str(), static_cast<int>(candidate.size())).cx <= maxWidth)
         {
             return candidate;
         }
     }
 
     return std::wstring();
-}
-
-void CNewUIServerPlayerListWindow::RenderEmptyListHint() const
-{
-    g_pRenderText->SetFont(g_hFont);
-    g_pRenderText->SetTextColor(0xFFB0B0B0);
-
-    g_pRenderText->RenderText(
-        m_Pos.x,
-        m_Pos.y + WINDOW_CONTENT_TOP + COLUMN_HEADER_HEIGHT,
-        I18N::Game::NoPlayersOnline,
-        WINDOW_WIDTH,
-        0,
-        RT3_SORT_CENTER);
-}
-
-int CNewUIServerPlayerListWindow::GetContentHeight() const
-{
-    return WINDOW_HEIGHT - WINDOW_CONTENT_TOP - COLUMN_HEADER_HEIGHT - CONTENT_BOTTOM_MARGIN;
-}
-
-int CNewUIServerPlayerListWindow::GetVisibleRowCount() const
-{
-    return GetContentHeight() / (ROW_HEIGHT + ROW_MARGIN);
 }
 
 float CNewUIServerPlayerListWindow::GetLayerDepth()

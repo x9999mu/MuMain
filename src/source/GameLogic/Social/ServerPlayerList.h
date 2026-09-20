@@ -23,6 +23,8 @@ namespace GameLogic::Social
         unsigned short Level = 0;
         unsigned char ClassId = 0;
         unsigned short Map = 0;
+        unsigned char PositionX = 0;
+        unsigned char PositionY = 0;
     };
 
     /// <summary>

@@ -12,40 +12,62 @@
 namespace SEASON3B
 {
     /// <summary>
-    /// Shows the players which are currently online on the same game server, together
-    /// with their level, class and the map they are on. The list is requested from the
-    /// server when the window is opened and refreshed periodically while it's visible.
+    /// Shows the players which are currently online on the same game server. It uses
+    /// the layout of the party window, but without the buttons which would kick a
+    /// player out of a party.
     /// </summary>
     class CNewUIServerPlayerListWindow : public CNewUIObj
     {
     public:
         enum IMAGE_LIST
         {
-            IMAGE_SERVER_PLAYER_WINDOW_BACK = CNewUIMessageBoxMng::IMAGE_MSGBOX_BACK,
-            IMAGE_SERVER_PLAYER_WINDOW_TOP = CNewUIMyInventory::IMAGE_INVENTORY_BACK_TOP,
-            IMAGE_SERVER_PLAYER_WINDOW_LEFT = CNewUIMyInventory::IMAGE_INVENTORY_BACK_LEFT,
-            IMAGE_SERVER_PLAYER_WINDOW_RIGHT = CNewUIMyInventory::IMAGE_INVENTORY_BACK_RIGHT,
-            IMAGE_SERVER_PLAYER_WINDOW_BOTTOM = CNewUIMyInventory::IMAGE_INVENTORY_BACK_BOTTOM,
-            IMAGE_SERVER_PLAYER_WINDOW_BTN_EXIT = CNewUIMyInventory::IMAGE_INVENTORY_EXIT_BTN,
+            // Base window, same images as the party window.
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_BACK = CNewUIMessageBoxMng::IMAGE_MSGBOX_BACK,
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_TOP = CNewUIMyInventory::IMAGE_INVENTORY_BACK_TOP,
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_LEFT = CNewUIMyInventory::IMAGE_INVENTORY_BACK_LEFT,
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_RIGHT = CNewUIMyInventory::IMAGE_INVENTORY_BACK_RIGHT,
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_BOTTOM = CNewUIMyInventory::IMAGE_INVENTORY_BACK_BOTTOM,
+            IMAGE_SERVER_PLAYER_BASE_WINDOW_BTN_EXIT = CNewUIMyInventory::IMAGE_INVENTORY_EXIT_BTN,
+
+            // Group box of a single row, same images as a party member entry.
+            IMAGE_SERVER_PLAYER_TABLE_TOP_LEFT = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_TOP_LEFT,
+            IMAGE_SERVER_PLAYER_TABLE_TOP_RIGHT = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_TOP_RIGHT,
+            IMAGE_SERVER_PLAYER_TABLE_BOTTOM_LEFT = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_BOTTOM_LEFT,
+            IMAGE_SERVER_PLAYER_TABLE_BOTTOM_RIGHT = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_BOTTOM_RIGHT,
+            IMAGE_SERVER_PLAYER_TABLE_TOP_PIXEL = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_TOP_PIXEL,
+            IMAGE_SERVER_PLAYER_TABLE_BOTTOM_PIXEL = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_BOTTOM_PIXEL,
+            IMAGE_SERVER_PLAYER_TABLE_LEFT_PIXEL = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_LEFT_PIXEL,
+            IMAGE_SERVER_PLAYER_TABLE_RIGHT_PIXEL = CNewUIInventoryCtrl::IMAGE_ITEM_TABLE_RIGHT_PIXEL,
         };
 
     private:
         enum WINDOW_LAYOUT
         {
-            WINDOW_WIDTH = 376,
-            WINDOW_HEIGHT = 320,
-            WINDOW_CONTENT_TOP = 46,
-            WINDOW_CONTENT_LEFT = 24,
-            COLUMN_HEADER_HEIGHT = 16,
-            ROW_HEIGHT = 15,
-            ROW_MARGIN = 1,
-            CONTENT_BOTTOM_MARGIN = 44,
-            SCROLLBAR_WIDTH = 15,
-            NAME_COLUMN_WIDTH = 70,
-            LEVEL_COLUMN_WIDTH = 30,
-            CLASS_COLUMN_WIDTH = 108,
-            MAP_COLUMN_WIDTH = 102,
-            COLUMN_GAP = 6,
+            WINDOW_WIDTH = 190,
+            WINDOW_HEIGHT = 429,
+
+            ROWS_LEFT = 10,
+            ROWS_TOP = 40,
+            ROW_HEIGHT = 71,
+            VISIBLE_ROW_COUNT = 5,
+
+            ROW_WIDTH = 158,
+            ROW_BOX_HEIGHT = 70,
+            ROW_TITLE_WIDTH = 70,
+            ROW_TITLE_HEIGHT = 20,
+
+            SCROLLBAR_LEFT = 170,
+            SCROLLBAR_HEIGHT = 340,
+
+            MAP_WIDTH = 70,
+            POSITION_WIDTH = 60,
+            LEVEL_WIDTH = 30,
+            CLASS_WIDTH = 116,
+
+            EXIT_BUTTON_LEFT = 13,
+            EXIT_BUTTON_TOP = 392,
+            EXIT_BUTTON_WIDTH = 36,
+            EXIT_BUTTON_HEIGHT = 29,
         };
 
         /// <summary>
@@ -61,7 +83,7 @@ namespace SEASON3B
 
         /// <summary>
         /// A row which is ready to be rendered. The texts which can be wider than
-        /// their column are shortened once per received list, so that rendering
+        /// their field are shortened once per received list, so that rendering
         /// neither measures nor allocates anything.
         /// </summary>
         struct DisplayRow
@@ -69,6 +91,8 @@ namespace SEASON3B
             int PlayerIndex = 0;
             std::wstring ClassText;
             std::wstring MapText;
+            wchar_t LevelText[8] = { 0, };
+            wchar_t PositionText[12] = { 0, };
         };
 
         CNewUIManager* m_pNewUIMng = nullptr;
@@ -93,6 +117,8 @@ namespace SEASON3B
         bool Update();
         bool Render();
 
+        bool BtnProcess();
+
         float GetLayerDepth();
 
         void OpenningProcess();
@@ -106,17 +132,11 @@ namespace SEASON3B
         void RequestPlayerList();
         void RebuildDisplayRows();
         void UpdateScrollBarExtent();
-        int GetScrollBarX() const;
 
-        int GetVisibleRowCount() const;
-        int GetContentHeight() const;
-
-        void RenderFrame() const;
-        void RenderColumnHeader() const;
-        void RenderPlayerRows() const;
-        void RenderPlayerRow(int rowIndex, const DisplayRow& row, int x, int y) const;
+        void RenderGroupBox(int x, int y, int width, int height, int titleWidth, int titleHeight) const;
+        void RenderPlayerRow(int rowIndex, const DisplayRow& row) const;
         void RenderEmptyListHint() const;
 
-        static std::wstring FitTextToColumn(const wchar_t* text, int columnWidth);
+        static std::wstring FitTextToWidth(const wchar_t* text, int maxWidth);
     };
 }
