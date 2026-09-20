@@ -6,6 +6,9 @@
 #include "UI/NewUI/Widgets/NewUIButton.h"
 #include "UI/NewUI/Widgets/NewUIScrollBar.h"
 
+#include <string>
+#include <vector>
+
 namespace SEASON3B
 {
     /// <summary>
@@ -29,19 +32,20 @@ namespace SEASON3B
     private:
         enum WINDOW_LAYOUT
         {
-            WINDOW_WIDTH = 240,
+            WINDOW_WIDTH = 376,
             WINDOW_HEIGHT = 320,
             WINDOW_CONTENT_TOP = 46,
-            WINDOW_CONTENT_LEFT = 12,
+            WINDOW_CONTENT_LEFT = 24,
             COLUMN_HEADER_HEIGHT = 16,
             ROW_HEIGHT = 15,
             ROW_MARGIN = 1,
             CONTENT_BOTTOM_MARGIN = 44,
             SCROLLBAR_WIDTH = 15,
-            NAME_COLUMN_WIDTH = 100,
-            LEVEL_COLUMN_WIDTH = 40,
-            CLASS_COLUMN_WIDTH = 52,
-            MAP_COLUMN_WIDTH = 36,
+            NAME_COLUMN_WIDTH = 70,
+            LEVEL_COLUMN_WIDTH = 30,
+            CLASS_COLUMN_WIDTH = 108,
+            MAP_COLUMN_WIDTH = 102,
+            COLUMN_GAP = 6,
         };
 
         /// <summary>
@@ -49,11 +53,31 @@ namespace SEASON3B
         /// </summary>
         static constexpr DWORD RefreshIntervalMilliseconds = 5000;
 
+        /// <summary>
+        /// A revision which the received list never has, so the first scroll bar
+        /// update always runs.
+        /// </summary>
+        static constexpr unsigned int NoRevisionYet = ~0u;
+
+        /// <summary>
+        /// A row which is ready to be rendered. The texts which can be wider than
+        /// their column are shortened once per received list, so that rendering
+        /// neither measures nor allocates anything.
+        /// </summary>
+        struct DisplayRow
+        {
+            int PlayerIndex = 0;
+            std::wstring ClassText;
+            std::wstring MapText;
+        };
+
         CNewUIManager* m_pNewUIMng = nullptr;
         POINT m_Pos = { 0, 0 };
         CNewUIButton m_BtnExit;
         CNewUIScrollBar* m_pScrollBar = nullptr;
         DWORD m_dwNextRefresh = 0;
+        unsigned int m_lastListRevision = NoRevisionYet;
+        std::vector<DisplayRow> m_displayRows;
 
     public:
         CNewUIServerPlayerListWindow();
@@ -80,7 +104,9 @@ namespace SEASON3B
         void InitButtons();
 
         void RequestPlayerList();
-        void UpdateScrollBar() const;
+        void RebuildDisplayRows();
+        void UpdateScrollBarExtent();
+        int GetScrollBarX() const;
 
         int GetVisibleRowCount() const;
         int GetContentHeight() const;
@@ -88,7 +114,9 @@ namespace SEASON3B
         void RenderFrame() const;
         void RenderColumnHeader() const;
         void RenderPlayerRows() const;
-        void RenderPlayerRow(int rowIndex, int playerIndex, int x, int y) const;
+        void RenderPlayerRow(int rowIndex, const DisplayRow& row, int x, int y) const;
         void RenderEmptyListHint() const;
+
+        static std::wstring FitTextToColumn(const wchar_t* text, int columnWidth);
     };
 }

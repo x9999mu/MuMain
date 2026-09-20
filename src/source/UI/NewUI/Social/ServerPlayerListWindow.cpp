@@ -9,7 +9,19 @@
 #include "UI/NewUI/NewUISystem.h"
 #include "World/MapInfra/MapManager.h"
 
+#include <cwchar>
+#include <iterator>
+#include <utility>
+
 using namespace SEASON3B;
+
+namespace
+{
+    /// <summary>
+    /// Appended to texts which are too wide for their column.
+    /// </summary>
+    constexpr wchar_t TextElision[] = L"...";
+}
 
 CNewUIServerPlayerListWindow::CNewUIServerPlayerListWindow() = default;
 
@@ -66,9 +78,7 @@ void CNewUIServerPlayerListWindow::SetPos(int x, int y)
 
     if (m_pScrollBar != nullptr)
     {
-        m_pScrollBar->SetPos(
-            m_Pos.x + WINDOW_WIDTH - WINDOW_CONTENT_LEFT - SCROLLBAR_WIDTH,
-            m_Pos.y + WINDOW_CONTENT_TOP + COLUMN_HEADER_HEIGHT);
+        m_pScrollBar->SetPos(GetScrollBarX(), m_Pos.y + WINDOW_CONTENT_TOP + COLUMN_HEADER_HEIGHT);
     }
 }
 
@@ -101,7 +111,12 @@ void CNewUIServerPlayerListWindow::InitButtons()
 void CNewUIServerPlayerListWindow::OpenningProcess()
 {
     RequestPlayerList();
-    UpdateScrollBar();
+
+    // The list may still be the one of the previous visit, so the derived rows are
+    // rebuilt even if the revision didn't change in the meantime.
+    RebuildDisplayRows();
+    UpdateScrollBarExtent();
+    m_lastListRevision = GameLogic::Social::GetServerPlayerListRevision();
 }
 
 void CNewUIServerPlayerListWindow::ClosingProcess()
@@ -126,20 +141,57 @@ bool CNewUIServerPlayerListWindow::Update()
         RequestPlayerList();
     }
 
-    UpdateScrollBar();
+    if (GameLogic::Social::GetServerPlayerListRevision() != m_lastListRevision)
+    {
+        m_lastListRevision = GameLogic::Social::GetServerPlayerListRevision();
+        RebuildDisplayRows();
+        UpdateScrollBarExtent();
+    }
+
+    if (m_pScrollBar != nullptr)
+    {
+        m_pScrollBar->Update();
+    }
 
     return true;
 }
 
-void CNewUIServerPlayerListWindow::UpdateScrollBar() const
+void CNewUIServerPlayerListWindow::RebuildDisplayRows()
+{
+    const int playerCount = GameLogic::Social::GetServerPlayerCount();
+    m_displayRows.clear();
+    m_displayRows.reserve(playerCount);
+
+    g_pRenderText->SetFont(g_hFont);
+
+    for (int i = 0; i < playerCount; i++)
+    {
+        const auto& player = GameLogic::Social::GetServerPlayer(i);
+        if (wcscmp(player.Name, Hero->ID) == 0)
+        {
+            // The own character is not part of the list; the player knows where it is.
+            continue;
+        }
+
+        const auto clientClass = gCharacterManager.ChangeServerClassTypeToClientClassType(
+            static_cast<SERVER_CLASS_TYPE>(player.ClassId));
+
+        DisplayRow row;
+        row.PlayerIndex = i;
+        row.ClassText = FitTextToColumn(gCharacterManager.GetCharacterClassText(clientClass), CLASS_COLUMN_WIDTH);
+        row.MapText = FitTextToColumn(gMapManager.GetMapName(player.Map), MAP_COLUMN_WIDTH);
+        m_displayRows.push_back(std::move(row));
+    }
+}
+
+void CNewUIServerPlayerListWindow::UpdateScrollBarExtent()
 {
     if (m_pScrollBar == nullptr)
     {
         return;
     }
 
-    const int totalRows = static_cast<int>(GameLogic::Social::GetServerPlayerList().size());
-    const int scrollableRows = totalRows - GetVisibleRowCount();
+    const int scrollableRows = static_cast<int>(m_displayRows.size()) - GetVisibleRowCount();
     const bool isScrollable = scrollableRows > 0;
 
     m_pScrollBar->Show(isScrollable);
@@ -155,8 +207,12 @@ void CNewUIServerPlayerListWindow::UpdateScrollBar() const
     {
         m_pScrollBar->SetCurPos(0);
     }
+}
 
-    m_pScrollBar->Update();
+int CNewUIServerPlayerListWindow::GetScrollBarX() const
+{
+    const int columnsWidth = NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH + MAP_COLUMN_WIDTH;
+    return m_Pos.x + WINDOW_CONTENT_LEFT + columnsWidth + COLUMN_GAP;
 }
 
 bool CNewUIServerPlayerListWindow::UpdateMouseEvent()
@@ -206,7 +262,7 @@ bool CNewUIServerPlayerListWindow::Render()
     RenderFrame();
     RenderColumnHeader();
 
-    if (GameLogic::Social::GetServerPlayerList().empty())
+    if (m_displayRows.empty())
     {
         RenderEmptyListHint();
     }
@@ -261,7 +317,7 @@ void CNewUIServerPlayerListWindow::RenderColumnHeader() const
 
 void CNewUIServerPlayerListWindow::RenderPlayerRows() const
 {
-    const auto& players = GameLogic::Social::GetServerPlayerList();
+    const int totalRows = static_cast<int>(m_displayRows.size());
     const int firstRow = m_pScrollBar != nullptr ? m_pScrollBar->GetCurPos() : 0;
     const int visibleRows = GetVisibleRowCount();
     const int rowX = m_Pos.x + WINDOW_CONTENT_LEFT;
@@ -269,36 +325,62 @@ void CNewUIServerPlayerListWindow::RenderPlayerRows() const
 
     for (int rowIndex = 0; rowIndex < visibleRows; rowIndex++)
     {
-        const int playerIndex = firstRow + rowIndex;
-        if (playerIndex >= static_cast<int>(players.size()))
+        const int displayRowIndex = firstRow + rowIndex;
+        if (displayRowIndex >= totalRows)
         {
             break;
         }
 
-        RenderPlayerRow(rowIndex, playerIndex, rowX, firstRowY);
+        RenderPlayerRow(rowIndex, m_displayRows[displayRowIndex], rowX, firstRowY);
     }
 }
 
-void CNewUIServerPlayerListWindow::RenderPlayerRow(int rowIndex, int playerIndex, int x, int y) const
+void CNewUIServerPlayerListWindow::RenderPlayerRow(int rowIndex, const DisplayRow& row, int x, int y) const
 {
-    const auto& player = GameLogic::Social::GetServerPlayerList()[playerIndex];
+    const auto& player = GameLogic::Social::GetServerPlayer(row.PlayerIndex);
     const int rowY = y + ((ROW_HEIGHT + ROW_MARGIN) * rowIndex);
-    const bool isOwnCharacter = player.Name == Hero->ID;
 
     g_pRenderText->SetFont(g_hFont);
-    g_pRenderText->SetTextColor(isOwnCharacter ? 0xFF60FF60u : 0xFFFFFFFFu);
+    g_pRenderText->SetTextColor(0xFFFFFFFFu);
 
-    g_pRenderText->RenderText(x, rowY, player.Name.c_str(), NAME_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(x, rowY, player.Name, NAME_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
 
     wchar_t levelText[8] = { 0, };
     mu_swprintf_s(levelText, std::size(levelText), L"%d", player.Level);
     g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH, rowY, levelText, LEVEL_COLUMN_WIDTH, 0, RT3_SORT_CENTER);
 
-    const auto classText = gCharacterManager.GetCharacterClassText(static_cast<CLASS_TYPE>(player.ClassId));
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH, rowY, classText, CLASS_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH, rowY, row.ClassText.c_str(), CLASS_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
 
-    const auto mapText = gMapManager.GetMapName(player.Map);
-    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH, rowY, mapText, MAP_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
+    g_pRenderText->RenderText(x + NAME_COLUMN_WIDTH + LEVEL_COLUMN_WIDTH + CLASS_COLUMN_WIDTH, rowY, row.MapText.c_str(), MAP_COLUMN_WIDTH, 0, RT3_SORT_LEFT);
+}
+
+std::wstring CNewUIServerPlayerListWindow::FitTextToColumn(const wchar_t* text, int columnWidth)
+{
+    if (text == nullptr || text[0] == L'\0' || columnWidth <= 0)
+    {
+        return std::wstring();
+    }
+
+    const auto length = static_cast<int>(wcslen(text));
+    if (g_pRenderText->MeasureText(text, length).cx <= columnWidth)
+    {
+        return std::wstring(text, length);
+    }
+
+    std::wstring shortened(text, length);
+    while (!shortened.empty())
+    {
+        shortened.pop_back();
+
+        std::wstring candidate = shortened;
+        candidate += TextElision;
+        if (g_pRenderText->MeasureText(candidate.c_str(), static_cast<int>(candidate.size())).cx <= columnWidth)
+        {
+            return candidate;
+        }
+    }
+
+    return std::wstring();
 }
 
 void CNewUIServerPlayerListWindow::RenderEmptyListHint() const

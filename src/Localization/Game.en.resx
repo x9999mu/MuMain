@@ -12977,6 +12977,6 @@
     <value>Server Players</value>
   </data>
   <data name="No players online." xml:space="preserve">
-    <value>No players are online right now.</value>
+    <value>No other players are online right now.</value>
   </data>
 </root>

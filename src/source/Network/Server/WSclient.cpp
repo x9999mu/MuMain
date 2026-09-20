@@ -7441,26 +7441,27 @@ void ReceiveServerPlayerList(const BYTE* ReceiveBuffer, int Size)
     const auto header = (LPPRECEIVE_SERVER_PLAYER_LISTS)ReceiveBuffer;
     const int offsetToPlayers = static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER_LISTS));
     const int availableCount = (Size - offsetToPlayers) / static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER));
-    const int count = header->Count < availableCount ? header->Count : availableCount;
+    int count = header->Count < availableCount ? header->Count : availableCount;
+    if (count > GameLogic::Social::MaxServerPlayersPerChunk)
+    {
+        count = GameLogic::Social::MaxServerPlayersPerChunk;
+    }
 
-    std::vector<GameLogic::Social::ServerPlayerInfo> players;
-    players.reserve(count);
+    // A chunk holds a handful of players, so it is decoded on the stack - the
+    // packet path must not allocate.
+    GameLogic::Social::ServerPlayerInfo players[GameLogic::Social::MaxServerPlayersPerChunk];
     for (int i = 0; i < count; i++)
     {
         const auto entry = (LPPRECEIVE_SERVER_PLAYER)(ReceiveBuffer + offsetToPlayers + (i * static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER))));
 
-        wchar_t name[MAX_USERNAME_SIZE + 1] = { 0, };
-        CMultiLanguage::ConvertFromUtf8(name, entry->Name, MAX_USERNAME_SIZE);
-
-        GameLogic::Social::ServerPlayerInfo player;
-        player.Name = name;
+        auto& player = players[i];
+        CMultiLanguage::ConvertFromUtf8(player.Name, entry->Name, MAX_USERNAME_SIZE);
         player.Level = entry->Level;
         player.ClassId = entry->ClassId;
         player.Map = entry->Map;
-        players.push_back(std::move(player));
     }
 
-    GameLogic::Social::ApplyServerPlayerListChunk(header->ChunkIndex, header->TotalChunks, std::move(players));
+    GameLogic::Social::ApplyServerPlayerListChunk(header->ChunkIndex, header->TotalChunks, count > 0 ? players : nullptr, count);
 
     g_ConsoleDebug->Write(MCD_RECEIVE, L"0xF3,0x60 [ReceiveServerPlayerList(chunk %d/%d, count %d)]", header->ChunkIndex, header->TotalChunks, count);
 }
