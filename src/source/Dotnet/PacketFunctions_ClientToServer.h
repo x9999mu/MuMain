@@ -514,13 +514,13 @@ public:
     /// <summary>
     /// Sends a CastleSiegeTaxChangeRequest to this connection.
     /// </summary>
-    /// <param name="taxType">The tax type.</param>
-    /// <param name="taxValue">The percentage rate for shop and Chaos Machine taxes, or the entrance fee amount for the hunting zone.</param>
+    /// <param name="taxType">0=Undefined, 1=ChaosMachine, 2 = Normal, 3 = EntranceFeeLandOfTrials</param>
+    /// <param name="taxRate">The tax rate.</param>
     /// <remarks>
     /// Is sent by the client when: The guild master wants to change the tax rate in the castle npc.
     /// Causes reaction on server side: The server changes the tax rates accordingly.
     /// </remarks>
-    void SendCastleSiegeTaxChangeRequest(CastleSiegeTaxType taxType, uint32_t taxValue);
+    void SendCastleSiegeTaxChangeRequest(BYTE taxType, uint32_t taxRate);
 
     /// <summary>
     /// Sends a CastleSiegeTaxMoneyWithdraw to this connection.
@@ -535,13 +535,13 @@ public:
     /// <summary>
     /// Sends a ToggleCastleGateRequest to this connection.
     /// </summary>
-    /// <param name="isOpen">The is open.</param>
+    /// <param name="closeState">The close state.</param>
     /// <param name="gateId">The gate id.</param>
     /// <remarks>
     /// Is sent by the client when: The guild member of the castle owner wants to toggle the gate switch.
     /// Causes reaction on server side: The castle gate is getting opened or closed.
     /// </remarks>
-    void SendToggleCastleGateRequest(BYTE isOpen, uint16_t gateId);
+    void SendToggleCastleGateRequest(BYTE closeState, uint16_t gateId);
 
     /// <summary>
     /// Sends a CastleGuildCommand to this connection.
@@ -549,12 +549,12 @@ public:
     /// <param name="team">Team Number 0 to 7.</param>
     /// <param name="positionX">The position x.</param>
     /// <param name="positionY">The position y.</param>
-    /// <param name="command">The command.</param>
+    /// <param name="command">0 = Attack, 1 = Defend, 2 = Wait</param>
     /// <remarks>
     /// Is sent by the client when: The guild master sent a command to his guild during the castle siege event.
     /// Causes reaction on server side: The command is shown on the mini map of the guild members.
     /// </remarks>
-    void SendCastleGuildCommand(BYTE team, BYTE positionX, BYTE positionY, CastleSiegeGuildCommandType command);
+    void SendCastleGuildCommand(BYTE team, BYTE positionX, BYTE positionY, BYTE command);
 
     /// <summary>
     /// Sends a CastleSiegeHuntingZoneEntranceSetting to this connection.
@@ -1104,15 +1104,6 @@ public:
     /// Causes reaction on server side: Adds or increases the master skill level of the specified skill, if the character is allowed to do that. A response is sent back to the client.
     /// </remarks>
     void SendAddMasterSkillPoint(uint16_t skillId);
-
-    /// <summary>
-    /// Sends a ServerPlayerListRequest to this connection.
-    /// </summary>
-    /// <remarks>
-    /// Is sent by the client when: The player opens the server player list window in the game client.
-    /// Causes reaction on server side: The server sends the list of the players which are currently online on the same game server, split into one or more chunks.
-    /// </remarks>
-    void SendServerPlayerListRequest();
 
     /// <summary>
     /// Sends a HitRequest to this connection.

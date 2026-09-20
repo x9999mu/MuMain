@@ -27,7 +27,7 @@ void CUIGateKeeper::SendPublicSetting()
 
 void CUIGateKeeper::SendEnteranceFee()
 {
-    SocketClient->ToGameServer()->SendCastleSiegeTaxChangeRequest(CastleSiegeTaxType::HuntingZoneEntranceFee, m_iViewEntranceFee);
+    SocketClient->ToGameServer()->SendCastleSiegeTaxChangeRequest(3, m_iViewEntranceFee);
 }
 
 void CUIGateKeeper::EnteranceFeeUp()

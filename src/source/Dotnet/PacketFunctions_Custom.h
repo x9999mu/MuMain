@@ -51,6 +51,12 @@ class PacketFunctions_ClientToServer_Custom : public PacketFunctions_Base
 {
 public:
     /// <summary>
+    /// Sends a hand-written server player list request (0xF3 / 0x60) to this connection.
+    /// The server answers with the players which are online on the same game server.
+    /// </summary>
+    void SendServerPlayerListRequest();
+
+    /// <summary>
     /// Sends a LoginLongPassword to this connection.
     /// </summary>
     /// <param name="username">The user name, "encrypted" with Xor3.</param>

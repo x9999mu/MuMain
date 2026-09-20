@@ -104,13 +104,13 @@ typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeDefenseUpgradeRequest)(in
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeTaxInfoRequest)(int32_t);
 
-typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeTaxChangeRequest)(int32_t, CastleSiegeTaxType , uint32_t );
+typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeTaxChangeRequest)(int32_t, BYTE , uint32_t );
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeTaxMoneyWithdraw)(int32_t, uint32_t );
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendToggleCastleGateRequest)(int32_t, BYTE , uint16_t );
 
-typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleGuildCommand)(int32_t, BYTE , BYTE , BYTE , CastleSiegeGuildCommandType );
+typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleGuildCommand)(int32_t, BYTE , BYTE , BYTE , BYTE );
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendCastleSiegeHuntingZoneEntranceSetting)(int32_t, BYTE );
 
@@ -217,8 +217,6 @@ typedef void(CORECLR_DELEGATE_CALLTYPE* SendClientReadyAfterMapChange)(int32_t);
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendSaveKeyConfiguration)(int32_t, const BYTE* , uint32_t);
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendAddMasterSkillPoint)(int32_t, uint16_t );
-
-typedef void(CORECLR_DELEGATE_CALLTYPE* SendServerPlayerListRequest)(int32_t);
 
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendHitRequest)(int32_t, uint16_t , BYTE , BYTE );
 

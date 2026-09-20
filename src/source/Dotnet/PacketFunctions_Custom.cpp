@@ -18,6 +18,20 @@
 typedef void(CORECLR_DELEGATE_CALLTYPE* SendLoginFn)(int32_t, const char16_t*, const char16_t*, uint32_t, const BYTE*,
                                                      const BYTE*);
 
+typedef void(CORECLR_DELEGATE_CALLTYPE* SendServerPlayerListRequestFn)(int32_t);
+
+void PacketFunctions_ClientToServer_Custom::SendServerPlayerListRequest()
+{
+    static const auto dotnet_SendServerPlayerListRequest =
+        LoadManagedSymbol<SendServerPlayerListRequestFn>("ConnectionManager_SendServerPlayerListRequest");
+    if (!dotnet_SendServerPlayerListRequest)
+    {
+        return;
+    }
+
+    dotnet_SendServerPlayerListRequest(this->GetHandle());
+}
+
 void PacketFunctions_ClientToServer_Custom::SendLogin(const wchar_t* username, const wchar_t* password,
                                                       const BYTE* clientVersion, const BYTE* clientSerial)
 {

@@ -480,7 +480,7 @@ void PacketFunctions_ClientToServer::SendCastleSiegeTaxInfoRequest()
     dotnet_SendCastleSiegeTaxInfoRequest(this->GetHandle());
 }
 
-void PacketFunctions_ClientToServer::SendCastleSiegeTaxChangeRequest(CastleSiegeTaxType taxType, uint32_t taxValue)
+void PacketFunctions_ClientToServer::SendCastleSiegeTaxChangeRequest(BYTE taxType, uint32_t taxRate)
 {
     static const auto dotnet_SendCastleSiegeTaxChangeRequest = LoadManagedSymbol<::SendCastleSiegeTaxChangeRequest>("SendCastleSiegeTaxChangeRequest");
     if (!dotnet_SendCastleSiegeTaxChangeRequest)
@@ -488,7 +488,7 @@ void PacketFunctions_ClientToServer::SendCastleSiegeTaxChangeRequest(CastleSiege
         return;
     }
 
-    dotnet_SendCastleSiegeTaxChangeRequest(this->GetHandle(), taxType, taxValue);
+    dotnet_SendCastleSiegeTaxChangeRequest(this->GetHandle(), taxType, taxRate);
 }
 
 void PacketFunctions_ClientToServer::SendCastleSiegeTaxMoneyWithdraw(uint32_t amount)
@@ -502,7 +502,7 @@ void PacketFunctions_ClientToServer::SendCastleSiegeTaxMoneyWithdraw(uint32_t am
     dotnet_SendCastleSiegeTaxMoneyWithdraw(this->GetHandle(), amount);
 }
 
-void PacketFunctions_ClientToServer::SendToggleCastleGateRequest(BYTE isOpen, uint16_t gateId)
+void PacketFunctions_ClientToServer::SendToggleCastleGateRequest(BYTE closeState, uint16_t gateId)
 {
     static const auto dotnet_SendToggleCastleGateRequest = LoadManagedSymbol<::SendToggleCastleGateRequest>("SendToggleCastleGateRequest");
     if (!dotnet_SendToggleCastleGateRequest)
@@ -510,10 +510,10 @@ void PacketFunctions_ClientToServer::SendToggleCastleGateRequest(BYTE isOpen, ui
         return;
     }
 
-    dotnet_SendToggleCastleGateRequest(this->GetHandle(), isOpen, gateId);
+    dotnet_SendToggleCastleGateRequest(this->GetHandle(), closeState, gateId);
 }
 
-void PacketFunctions_ClientToServer::SendCastleGuildCommand(BYTE team, BYTE positionX, BYTE positionY, CastleSiegeGuildCommandType command)
+void PacketFunctions_ClientToServer::SendCastleGuildCommand(BYTE team, BYTE positionX, BYTE positionY, BYTE command)
 {
     static const auto dotnet_SendCastleGuildCommand = LoadManagedSymbol<::SendCastleGuildCommand>("SendCastleGuildCommand");
     if (!dotnet_SendCastleGuildCommand)
@@ -1105,17 +1105,6 @@ void PacketFunctions_ClientToServer::SendAddMasterSkillPoint(uint16_t skillId)
     }
 
     dotnet_SendAddMasterSkillPoint(this->GetHandle(), skillId);
-}
-
-void PacketFunctions_ClientToServer::SendServerPlayerListRequest()
-{
-    static const auto dotnet_SendServerPlayerListRequest = LoadManagedSymbol<::SendServerPlayerListRequest>("SendServerPlayerListRequest");
-    if (!dotnet_SendServerPlayerListRequest)
-    {
-        return;
-    }
-
-    dotnet_SendServerPlayerListRequest(this->GetHandle());
 }
 
 void PacketFunctions_ClientToServer::SendHitRequest(uint16_t targetId, BYTE attackAnimation, BYTE lookingDirection)

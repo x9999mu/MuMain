@@ -16,7 +16,46 @@ using MUnique.OpenMU.Network.Xor;
 /// </summary>
 public unsafe partial class ConnectionManager
 {
+    private const byte ServerPlayerListRequestHeaderType = 0xC1;
+    private const byte ServerPlayerListRequestCode = 0xF3;
+    private const byte ServerPlayerListRequestSubCode = 0x60;
+    private const int ServerPlayerListRequestLength = 4;
+
     private static readonly Xor3Encryptor Xor3Encryptor = new(0);
+
+    /// <summary>
+    /// Sends a server player list request (0xF3 / 0x60) to this connection. The packet has
+    /// no payload; the server answers with the players which are online on the same game
+    /// server. It is hand-written because the packet is not part of the packet definitions
+    /// of the referenced package yet.
+    /// </summary>
+    /// <param name="handle">The handle of the connection.</param>
+    [UnmanagedCallersOnly(EntryPoint = "ConnectionManager_SendServerPlayerListRequest")]
+    public static void SendServerPlayerListRequest(int handle)
+    {
+        if (!Connections.TryGetValue(handle, out var connection))
+        {
+            ManagedLog.Write(ManagedLog.Level.Error, $"NET: Server player list request skipped; connection handle={handle} not found");
+            return;
+        }
+
+        try
+        {
+            connection.CreateAndSend(pipeWriter =>
+            {
+                var packet = pipeWriter.GetSpan(ServerPlayerListRequestLength)[..ServerPlayerListRequestLength];
+                packet[0] = ServerPlayerListRequestHeaderType;
+                packet[1] = ServerPlayerListRequestLength;
+                packet[2] = ServerPlayerListRequestCode;
+                packet[3] = ServerPlayerListRequestSubCode;
+                return ServerPlayerListRequestLength;
+            });
+        }
+        catch (Exception ex)
+        {
+            ManagedLog.Write(ManagedLog.Level.Error, $"NET: Server player list request staging failed, handle={handle}: {ex}");
+        }
+    }
 
     /// <summary>
     /// Sends a <see cref="LoginLongPassword" /> to this connection.
