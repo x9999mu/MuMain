@@ -631,7 +631,9 @@ enum ActionSkillType
     AT_SKILL_RecoverHPfromMonsterKills = 606,
     AT_SKILL_IncreaseMinimumAttackPower = 607,
     AT_SKILL_RecoverManaMonsterKills = 608,
-    AT_SKILL_MASTER_END = 608,
+    // The Rage Fighter master tree uses master skills up to 616 (e.g. Recover Mana Fully), so the
+    // master skill data (MasterSkillInfo) must cover them, too.
+    AT_SKILL_MASTER_END = 616,
 };
 
 inline const std::map<ActionSkillType, ActionSkillType> SKILL_REPLACEMENTS = {
