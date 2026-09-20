@@ -316,6 +316,8 @@ context.
 - [Chat commands window](docs/chat-commands.md) - the commands the server
   offers (J), how their values are entered, and how favourites and
   templates are stored.
+- [Server player list](docs/server-player-list.md) - who is online on the same
+  game server and on which map (O).
 - [DevEditor](docs/dev-editor.md) - the in-game tuning UI (F12, debug
   builds only).
 - [Options window and config](docs/options-window.md) - runtime

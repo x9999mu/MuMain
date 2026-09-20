@@ -30,6 +30,7 @@
 #include "UI/NewUI/Quests/NewUIMyQuestInfoWindow.h"
 #include "UI/NewUI/Party/NewUIPartyInfoWindow.h"
 #include "UI/NewUI/Party/NewUIPartyListWindow.h"
+#include "UI/NewUI/Social/ServerPlayerListWindow.h"
 #include "UI/NewUI/Quests/NewUINPCQuest.h"
 #include "UI/NewUI/Events/NewUIEnterDevilSquare.h"
 #include "UI/NewUI/Events/NewUIBloodCastleEnter.h"
@@ -175,6 +176,7 @@ namespace SEASON3B
         CNewUIMyQuestInfoWindow* m_pNewMyQuestInfoWindow;
         CNewUIPartyInfoWindow* m_pNewPartyInfoWindow;
         CNewUIPartyListWindow* m_pNewPartyListWindow;
+        CNewUIServerPlayerListWindow* m_pNewServerPlayerListWindow;
         CNewUINPCQuest* m_pNewNPCQuest;
         CNewUIEnterBloodCastle* m_pNewEnterBloodCastle;
         CNewUIEnterDevilSquare* m_pNewEnterDevilSquare;
@@ -260,6 +262,7 @@ namespace SEASON3B
         CNewUIMyQuestInfoWindow* GetUI_NewMyQuestInfoWindow() const;
         CNewUIPartyInfoWindow* GetUI_NewPartyInfoWindow() const;
         CNewUIPartyListWindow* GetUI_NewPartyListWindow() const;
+        CNewUIServerPlayerListWindow* GetUI_NewServerPlayerListWindow() const;
         CNewUINPCQuest* GetUI_NewNPCQuest() const;
         CNewUIEnterBloodCastle* GetUI_NewEnterBloodCastle() const;
         CNewUIEnterDevilSquare* GetUI_NewEnterDevilSquare() const;
@@ -348,6 +351,7 @@ namespace SEASON3B
 #define g_pMyQuestInfoWindow SEASON3B::CNewUISystem::GetInstance()->GetUI_NewMyQuestInfoWindow()
 #define g_pPartyInfoWindow		SEASON3B::CNewUISystem::GetInstance()->GetUI_NewPartyInfoWindow()
 #define g_pPartyListWindow		SEASON3B::CNewUISystem::GetInstance()->GetUI_NewPartyListWindow()
+#define g_pServerPlayerListWindow	SEASON3B::CNewUISystem::GetInstance()->GetUI_NewServerPlayerListWindow()
 #define g_pNPCQuest SEASON3B::CNewUISystem::GetInstance()->GetUI_NewNPCQuest()
 #define g_pEnterBloodCastle SEASON3B::CNewUISystem::GetInstance()->GetUI_NewEnterBloodCastle()
 #define g_pEnterDevilSquare SEASON3B::CNewUISystem::GetInstance()->GetUI_NewEnterDevilSquare()

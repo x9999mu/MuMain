@@ -12973,4 +12973,10 @@
   <data name="ChatCommandsUnknownCommand" xml:space="preserve">
     <value>This command is not available anymore.</value>
   </data>
+  <data name="Server Players" xml:space="preserve">
+    <value>Server Players</value>
+  </data>
+  <data name="No players online." xml:space="preserve">
+    <value>No players are online right now.</value>
+  </data>
 </root>

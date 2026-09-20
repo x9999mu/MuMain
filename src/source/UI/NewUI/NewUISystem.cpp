@@ -69,6 +69,7 @@ CNewUISystem::CNewUISystem()
     m_pNewCharacterInfoWindow = nullptr;
     m_pNewPartyInfoWindow = nullptr;
     m_pNewPartyListWindow = nullptr;
+    m_pNewServerPlayerListWindow = nullptr;
     m_pNewNPCQuest = nullptr;
     m_pNewEnterBloodCastle = nullptr;
     m_pNewEnterDevilSquare = nullptr;
@@ -303,6 +304,10 @@ bool CNewUISystem::LoadMainSceneInterface()
 
     m_pNewPartyListWindow = new CNewUIPartyListWindow;
     if (m_pNewPartyListWindow->Create(m_pNewUIMng, 640 - 79, 14) == false)
+        return false;
+
+    m_pNewServerPlayerListWindow = new CNewUIServerPlayerListWindow;
+    if (m_pNewServerPlayerListWindow->Create(m_pNewUIMng, PanelColumnX(1), 0) == false)
         return false;
 
     m_pNewNPCQuest = new CNewUINPCQuest;
@@ -593,6 +598,7 @@ void CNewUISystem::UnloadMainSceneInterface()
     SAFE_DELETE(m_pNewMainFrameWindow);
     SAFE_DELETE(m_pNewPartyInfoWindow);
     SAFE_DELETE(m_pNewPartyListWindow);
+    SAFE_DELETE(m_pNewServerPlayerListWindow);
     SAFE_DELETE(m_pNewEnterBloodCastle);
     SAFE_DELETE(m_pNewEnterDevilSquare);
     SAFE_DELETE(m_pNewBloodCastle);
@@ -900,6 +906,11 @@ void CNewUISystem::Show(DWORD dwKey)
     {
         HideAllGroupA();
         m_pNewPartyInfoWindow->OpenningProcess();
+    }
+    else if (dwKey == INTERFACE_SERVER_PLAYERS)
+    {
+        HideAllGroupA();
+        m_pNewServerPlayerListWindow->OpenningProcess();
     }
     else if (dwKey == INTERFACE_NPCQUEST)
     {
@@ -1359,6 +1370,10 @@ void CNewUISystem::Hide(DWORD dwKey)
     {
         m_pNewPartyInfoWindow->ClosingProcess();
     }
+    else if (dwKey == INTERFACE_SERVER_PLAYERS)
+    {
+        m_pNewServerPlayerListWindow->ClosingProcess();
+    }
     else if (dwKey == INTERFACE_MYQUEST)
     {
         m_pNewMyQuestInfoWindow->ClosingProcess();
@@ -1634,6 +1649,7 @@ void CNewUISystem::HideAllGroupA()
         INTERFACE_MUHELPER,
         INTERFACE_MUHELPER_EXT,
         INTERFACE_MUHELPER_SKILL_LIST,
+        INTERFACE_SERVER_PLAYERS,
         INTERFACE_MIXINVENTORY,
         INTERFACE_STORAGE,
         INTERFACE_NPCSHOP,
@@ -1694,6 +1710,7 @@ void CNewUISystem::HideAllGroupB()
         // SEASON3B::INTERFACE_CHARACTER,
         // SEASON3B::INTERFACE_WINDOW_MENU,
 
+        INTERFACE_SERVER_PLAYERS,
         INTERFACE_MIXINVENTORY,
         INTERFACE_STORAGE,
         INTERFACE_NPCSHOP,
@@ -1745,6 +1762,7 @@ void CNewUISystem::HideGroupBeforeOpenInterface()
 {
     DWORD dwGroupC[] = {
         INTERFACE_PARTY,
+        INTERFACE_SERVER_PLAYERS,
         INTERFACE_COMMAND,
         INTERFACE_COMMAND_LIST,
         INTERFACE_GUILDINFO,
@@ -2269,6 +2287,11 @@ CNewUIPartyInfoWindow* CNewUISystem::GetUI_NewPartyInfoWindow() const
 CNewUIPartyListWindow* CNewUISystem::GetUI_NewPartyListWindow() const
 {
     return m_pNewPartyListWindow;
+}
+
+CNewUIServerPlayerListWindow* CNewUISystem::GetUI_NewServerPlayerListWindow() const
+{
+    return m_pNewServerPlayerListWindow;
 }
 
 CNewUINPCQuest* CNewUISystem::GetUI_NewNPCQuest() const

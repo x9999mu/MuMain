@@ -50,6 +50,7 @@ UI::Scaling::LayoutMode UI::Layout::ForInterface(std::uint32_t interfaceKey)
         return LayoutMode::HudCenter;
 
     case INTERFACE_PARTY:
+    case INTERFACE_SERVER_PLAYERS:
     case INTERFACE_MYQUEST:
     case INTERFACE_NPCQUEST:
     case INTERFACE_GUILDINFO:

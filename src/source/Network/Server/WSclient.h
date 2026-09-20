@@ -1014,6 +1014,29 @@ typedef struct
     BYTE Count;
 } PRECEIVE_PARTY_LISTS, *LPPRECEIVE_PARTY_LISTS;
 
+#pragma pack(push, 1)
+
+// receive server player list (0xF3, 0x60)
+typedef struct
+{
+    PBMSG_HEADER Header;
+    BYTE SubCode;
+    BYTE ChunkIndex;
+    BYTE TotalChunks;
+    BYTE Count;
+} PRECEIVE_SERVER_PLAYER_LISTS, *LPPRECEIVE_SERVER_PLAYER_LISTS;
+
+// one entry of the server player list
+typedef struct
+{
+    char Name[MAX_USERNAME_SIZE];
+    WORD Level;
+    BYTE ClassId;
+    WORD Map;
+} PRECEIVE_SERVER_PLAYER, *LPPRECEIVE_SERVER_PLAYER;
+
+#pragma pack(pop)
+
 typedef struct
 {
     PBMSG_HEADER Header;

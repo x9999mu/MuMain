@@ -34,6 +34,7 @@
 #include "GameLogic/NPCs/npcBreeder.h"
 #include "GameLogic/Pets/GIPetManager.h"
 #include "GameLogic/Pets/w_PetProcess.h"
+#include "GameLogic/Social/ServerPlayerList.h"
 #include "Network/Server/CSMapServer.h"
 #include "GameLogic/NPCs/npcGateSwitch.h"
 #include "GameLogic/Items/CComGem.h"
@@ -926,6 +927,7 @@ void InitGame()
     matchEvent::ClearMatchInfo();
 
     InitPartyList();
+    GameLogic::Social::ClearServerPlayerList();
 
     g_csQuest.clearQuest();
 
@@ -7434,6 +7436,35 @@ void ReceivePartyList(const BYTE* ReceiveBuffer)
     g_ConsoleDebug->Write(MCD_RECEIVE, L"0x42 [ReceivePartyList(partynum : %d)]", Data->Count);
 }
 
+void ReceiveServerPlayerList(const BYTE* ReceiveBuffer, int Size)
+{
+    const auto header = (LPPRECEIVE_SERVER_PLAYER_LISTS)ReceiveBuffer;
+    const int offsetToPlayers = static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER_LISTS));
+    const int availableCount = (Size - offsetToPlayers) / static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER));
+    const int count = header->Count < availableCount ? header->Count : availableCount;
+
+    std::vector<GameLogic::Social::ServerPlayerInfo> players;
+    players.reserve(count);
+    for (int i = 0; i < count; i++)
+    {
+        const auto entry = (LPPRECEIVE_SERVER_PLAYER)(ReceiveBuffer + offsetToPlayers + (i * static_cast<int>(sizeof(PRECEIVE_SERVER_PLAYER))));
+
+        wchar_t name[MAX_USERNAME_SIZE + 1] = { 0, };
+        CMultiLanguage::ConvertFromUtf8(name, entry->Name, MAX_USERNAME_SIZE);
+
+        GameLogic::Social::ServerPlayerInfo player;
+        player.Name = name;
+        player.Level = entry->Level;
+        player.ClassId = entry->ClassId;
+        player.Map = entry->Map;
+        players.push_back(std::move(player));
+    }
+
+    GameLogic::Social::ApplyServerPlayerListChunk(header->ChunkIndex, header->TotalChunks, std::move(players));
+
+    g_ConsoleDebug->Write(MCD_RECEIVE, L"0xF3,0x60 [ReceiveServerPlayerList(chunk %d/%d, count %d)]", header->ChunkIndex, header->TotalChunks, count);
+}
+
 void ReceivePartyInfo(const BYTE* ReceiveBuffer)
 {
     auto Data = (LPPRECEIVE_PARTY_INFOS)ReceiveBuffer;
@@ -13727,6 +13758,9 @@ static void ProcessPacket(const BYTE* ReceiveBuffer, int32_t Size)
             break;
         case 0x53:
             Receive_Master_SetSkillList((PMSG_MASTER_SKILL_LIST_SEND*)ReceiveBuffer);
+            break;
+        case 0x60:
+            ReceiveServerPlayerList(ReceiveBuffer, Size);
             break;
         }
         break;
