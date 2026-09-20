@@ -80,6 +80,10 @@ def build_manifest(args: argparse.Namespace) -> dict:
         "preserve": ["config.ini"],
     }
 
+    if args.commits_file and os.path.isfile(args.commits_file):
+        with open(args.commits_file, encoding="utf-8") as file:
+            manifest["commits"] = json.load(file)
+
     if args.audio_id and args.audio_url and args.audio_sha256 and args.audio_size:
         manifest["audio"] = {
             "id": args.audio_id,
@@ -126,6 +130,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audio-sha256", help="sha256 of the audio archive")
     parser.add_argument("--audio-size", type=int, help="Size of the audio archive in bytes")
     parser.add_argument("--audio-tag", help="Release tag which hosts the audio archive")
+    parser.add_argument("--commits-file", help="JSON file with the short change list for the launcher")
     parser.add_argument("--channel", default="stable", help="Release channel")
     parser.add_argument("--server-host", default="100.108.169.118", help="Connect server address")
     parser.add_argument("--server-host-name", default="", help="Optional connect server host name")

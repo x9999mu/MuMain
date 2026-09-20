@@ -342,11 +342,14 @@ jobs:
             channel="stable"
           fi
 
+          python3 tools/generate_highlights.py --count 4 --output highlights.json
+
           python3 tools/generate_manifest.py \
             --runtime-version "$runtime_version" \
             --runtime-archive "dl/$runtime_asset" \
             --data-id "$data_id" \
             --data-archive "dl/$data_archive" \
+            --commits-file highlights.json \
             --repository "$GITHUB_REPOSITORY" \
             --channel "$channel" \
             --server-host "${{ vars.OPENMU_CONNECT_SERVER_HOST || '100.108.169.118' }}" \
