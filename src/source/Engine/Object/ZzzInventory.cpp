@@ -5099,7 +5099,16 @@ void RenderItemInfo(int sx, int sy, ITEM* ip, bool Sell, int Inventype, bool bIt
         }
 
         gSkillManager.GetSkillInformation(ip->Special[i], 1, NULL, &iMana, NULL);
+        TextList[TextNum][0] = L'\0';
         GetSpecialOptionText(ip->Type, TextList[TextNum], ip->Special[i], ip->SpecialValue[i], iMana);
+
+        // Not every special entry has a text case (for example the Rage Fighter's Phoenix Shot skill
+        // of the Phoenix Soul Star). An empty line would make RenderTipTextList stop right there and
+        // hide every option which follows it, like luck and excellent options, so skip such entries.
+        if (TextList[TextNum][0] == L'\0')
+        {
+            continue;
+        }
 
         TextListColor[TextNum] = TEXT_COLOR_BLUE;
         TextBold[TextNum] = false; TextNum++;
