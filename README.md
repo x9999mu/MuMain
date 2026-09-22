@@ -319,7 +319,8 @@ context.
 - [Server player list](docs/server-player-list.md) - who is online on the same
   game server and on which map (O).
 - [DevEditor](docs/dev-editor.md) - the in-game tuning UI (F12, debug
-  builds only).
+  builds only), including the [Map Editor tab](docs/dev-editor.md#33-map-editor-tab)
+  for terrain textures/height/attributes, world objects, and minimap capture.
 - [Options window and config](docs/options-window.md) - runtime
   resolution / windowed toggle, slider rounding, and what the options
   window stores in `config.ini`.
