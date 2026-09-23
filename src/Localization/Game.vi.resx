@@ -12981,6 +12981,15 @@
   <data name="ChatCommandsUnknownCommand" xml:space="preserve">
     <value>Lệnh này không còn khả dụng.</value>
   </data>
+  <data name="Random Move" xml:space="preserve">
+    <value>Di chuyển ngẫu nhiên</value>
+  </data>
+  <data name="Server Players" xml:space="preserve">
+    <value>Người chơi trên máy chủ</value>
+  </data>
+  <data name="No players online." xml:space="preserve">
+    <value>Hiện không có người chơi nào khác online.</value>
+  </data>
   <data name="%s Jewel" xml:space="preserve">
     <value>Ngọc %s</value>
   </data>
