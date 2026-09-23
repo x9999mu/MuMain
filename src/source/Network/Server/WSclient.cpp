@@ -7591,7 +7591,8 @@ void ReceiveResetConfirmationRequest(const BYTE* ReceiveBuffer, int Size)
     while (lineStart <= text.size())
     {
         const size_t lineEnd = text.find(L'\n', lineStart);
-        const std::wstring line = text.substr(lineStart, lineEnd == std::wstring::npos ? std::wstring::npos : lineEnd - lineStart);
+        const std::wstring line =
+            text.substr(lineStart, lineEnd == std::wstring::npos ? std::wstring::npos : lineEnd - lineStart);
         if (!line.empty())
         {
             pMsgBox->AddMsg(line.c_str());

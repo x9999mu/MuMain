@@ -1083,7 +1083,8 @@ bool SEASON3B::CResetConfirmMsgBoxLayout::SetLayout()
     return true;
 }
 
-CALLBACK_RESULT SEASON3B::CResetConfirmMsgBoxLayout::OkBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
+CALLBACK_RESULT SEASON3B::CResetConfirmMsgBoxLayout::OkBtnDown(class CNewUIMessageBoxBase* pOwner,
+                                                               const leaf::xstreambuf& xParam)
 {
     SocketClient->ToGameServer()->SendResetConfirmation(SEASON3B::g_byPendingResetTypeIndex, true);
 
@@ -1093,7 +1094,8 @@ CALLBACK_RESULT SEASON3B::CResetConfirmMsgBoxLayout::OkBtnDown(class CNewUIMessa
     return CALLBACK_BREAK;
 }
 
-CALLBACK_RESULT SEASON3B::CResetConfirmMsgBoxLayout::CancelBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
+CALLBACK_RESULT SEASON3B::CResetConfirmMsgBoxLayout::CancelBtnDown(class CNewUIMessageBoxBase* pOwner,
+                                                                   const leaf::xstreambuf& xParam)
 {
     SocketClient->ToGameServer()->SendResetConfirmation(SEASON3B::g_byPendingResetTypeIndex, false);
 
