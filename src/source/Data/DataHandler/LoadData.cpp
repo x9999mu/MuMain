@@ -19,7 +19,28 @@ CLoadData::~CLoadData() // OK
 {
 }
 
-void CLoadData::AccessModel(int Type, const wchar_t* Dir, const wchar_t* FileName, int i)
+namespace
+{
+// Probes a model file through the same shim the loader opens it with, so the
+// answer matches what Open2 sees on every platform: the POSIX shim also
+// corrects the separators and the case of these Windows-spelled asset paths.
+bool ModelFileExists(const wchar_t* Dir, const wchar_t* Name)
+{
+    wchar_t ModelPath[260] = {};
+    _snwprintf(ModelPath, std::size(ModelPath), L"%ls%ls", Dir, Name);
+
+    FILE* file = _wfopen(ModelPath, L"rb");
+    if (file == nullptr)
+    {
+        return false;
+    }
+
+    fclose(file);
+    return true;
+}
+} // namespace
+
+void CLoadData::AccessModel(int Type, const wchar_t* Dir, const wchar_t* FileName, int i, bool bOptional)
 {
     wchar_t Name[64];
     if (i == -1)
@@ -37,9 +58,20 @@ void CLoadData::AccessModel(int Type, const wchar_t* Dir, const wchar_t* FileNam
 
     if (Success == false)
     {
-        g_ErrorReport.Write(L"AccessModel failed: %ls%ls (Type=%d)\r\n", Dir, Name, Type);
+        const bool bBaseModel = wcscmp(FileName, L"Monster") == 0 || wcscmp(FileName, L"Player") == 0 ||
+                                wcscmp(FileName, L"PlayerTest") == 0 || wcscmp(FileName, L"Angel") == 0;
 
-        if (wcscmp(FileName, L"Monster") == 0 || wcscmp(FileName, L"Player") == 0 || wcscmp(FileName, L"PlayerTest") == 0 || wcscmp(FileName, L"Angel") == 0)
+        // An optional model that is simply not shipped is not worth a line in
+        // MuError.log: the world object table alone has 160 slots per map and
+        // the maps fill only a handful, which put ~150 lines per map load into
+        // the log. A file that is there but cannot be read, and a missing base
+        // model - which stops the client below - are still reported.
+        if (!bOptional || bBaseModel || ModelFileExists(Dir, Name))
+        {
+            g_ErrorReport.Write(L"AccessModel failed: %ls%ls (Type=%d)\r\n", Dir, Name, Type);
+        }
+
+        if (bBaseModel)
         {
             wchar_t Text[256];
             mu_swprintf(Text, L"%ls file does not exist.", Name);

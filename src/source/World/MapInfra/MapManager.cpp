@@ -1119,8 +1119,10 @@ void CMapManager::Load() // OK
         }
 
         mu_swprintf(DirName, L"Data\\Object%d\\", iMapWorld);
+        // Optional: a world ships only the object slots it places, so the rest
+        // of the table has no file at all and is left empty without a report.
         for (i = MODEL_WORLD_OBJECT; i < MAX_WORLD_OBJECTS; i++)
-            gLoadData.AccessModel(i, DirName, L"Object", i + 1);
+            gLoadData.AccessModel(i, DirName, L"Object", i + 1, true);
 
         mu_swprintf(DirName, L"Object%d\\", iMapWorld);
         for (i = MODEL_WORLD_OBJECT; i < MAX_WORLD_OBJECTS; i++)
