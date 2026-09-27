@@ -19,7 +19,9 @@ concurrency:
 jobs:
   release-data:
     name: Publish data asset
-    if: github.repository == 'sven-n/MuMain'
+    # x9999: the fork publishes its own data releases, which its client manifest needs. Upstream
+    # keeps them in sven-n/MuMain, where this workflow was originally restricted to.
+    if: github.repository == 'sven-n/MuMain' || github.repository == 'x9999mu/MuMain'
     runs-on: ubuntu-latest
 
     steps:
