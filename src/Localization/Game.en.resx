@@ -13018,4 +13018,7 @@
   <data name="Add all points using the suggested build" xml:space="preserve">
     <value>Add all points using the suggested build</value>
   </data>
+  <data name="KeepFlightEquipmentInIcarus" xml:space="preserve">
+    <value>In Icarus you cannot take off your last wings or flying mount.</value>
+  </data>
 </root>
