@@ -1122,6 +1122,46 @@
       }
     },
     {
+      "number": 73,
+      "name": {
+        "en": "Sphere (4)"
+      },
+      "tags": ["socketSphere"],
+      "width": 1,
+      "height": 1,
+      "level": 142,
+      "buyPrice": 250000,
+      "classRequirements": {
+        "darkWizard": 1,
+        "darkKnight": 1,
+        "fairyElf": 1,
+        "magicGladiator": 1,
+        "darkLord": 1,
+        "summoner": 1,
+        "rageFighter": 1
+      }
+    },
+    {
+      "number": 74,
+      "name": {
+        "en": "Sphere (5)"
+      },
+      "tags": ["socketSphere"],
+      "width": 1,
+      "height": 1,
+      "level": 145,
+      "buyPrice": 300000,
+      "classRequirements": {
+        "darkWizard": 1,
+        "darkKnight": 1,
+        "fairyElf": 1,
+        "magicGladiator": 1,
+        "darkLord": 1,
+        "summoner": 1,
+        "rageFighter": 1
+      }
+    },
+    {
       "number": 100,
       "name": {
         "en": "Seed Sphere (Fire)",
