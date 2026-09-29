@@ -37,6 +37,7 @@
 #include "GameLogic/Pets/w_PetProcess.h"
 #include "GameLogic/Social/ServerPlayerList.h"
 #include "Network/Server/CSMapServer.h"
+#include "Network/Server/TransformViewportEntry.h"
 #include "GameLogic/NPCs/npcGateSwitch.h"
 #include "GameLogic/Items/CComGem.h"
 #include "GameLogic/Items/InventoryUtils.h"
@@ -2742,16 +2743,19 @@ void ReceiveCreateTransformViewport(std::span<const BYTE> ReceiveBuffer)
         return;
     }
 
-    int Offset = sizeof(PWHEADER_DEFAULT_WORD);
+    std::size_t Offset = sizeof(PWHEADER_DEFAULT_WORD);
 
     for (int i = 0; i < Data->Value; i++)
     {
-        auto Data2 = safe_cast<PCREATE_TRANSFORM_EXTENDED>(ReceiveBuffer.subspan(Offset));
-        if (Data2 == nullptr)
+        const auto EntryLength = Network::Viewport::TransformViewportEntryLength(ReceiveBuffer, Offset);
+        if (!EntryLength)
         {
             assert(false);
             return;
         }
+
+        // Checked above: the fixed fields and the s_BuffCount buffs of the entry are in the packet.
+        auto Data2 = reinterpret_cast<PCREATE_TRANSFORM_EXTENDED*>(const_cast<BYTE*>(ReceiveBuffer.data() + Offset));
 
         WORD Key = ((WORD)(Data2->KeyH) << 8) + Data2->KeyL;
         int CreateFlag = (Key >> 15);
@@ -2855,7 +2859,7 @@ void ReceiveCreateTransformViewport(std::span<const BYTE> ReceiveBuffer)
             ChangeCharacterExt(FindCharacterIndex(Key), Data2->Equipment);
         }
 
-        Offset += (sizeof(PCREATE_TRANSFORM_EXTENDED) - (sizeof(BYTE) * (MAX_BUFF_SLOT_INDEX - Data2->s_BuffCount)));
+        Offset += *EntryLength;
     }
 
     g_ConsoleDebug->Write(MCD_RECEIVE, L"0x45 [ReceiveCreateTransformViewport(%d)]", Data->Value);
@@ -7321,7 +7325,8 @@ void ReceiveSummonLife(const BYTE* ReceiveBuffer)
 BOOL ReceiveTrade(const BYTE* ReceiveBuffer, BOOL bEncrypted)
 {
     auto Data = (LPPCHATING)ReceiveBuffer;
-    g_pTrade->ProcessToReceiveTradeRequest(Data->ID);
+    const bool asked = g_pTrade->ProcessToReceiveTradeRequest(Data->ID);
+    App::Control::Events::RecordTradeRequested(Data->ID, asked);
 
     return (TRUE);
 }
@@ -7332,6 +7337,7 @@ void ReceiveTradeResult(const BYTE* ReceiveBuffer)
     // The server sends TradePartnerLevel big-endian.
     trade.Level = ntoh16(trade.Level);
     g_pTrade->ProcessToReceiveTradeResult(&trade);
+    App::Control::Events::RecordTradeAnswer(trade.SubCode, trade.ID);
 }
 
 void ReceiveTradeYourInventoryDelete(const BYTE* ReceiveBuffer)
@@ -7363,6 +7369,7 @@ void ReceiveTradeYourResult(const BYTE* ReceiveBuffer)
 {
     auto Data = (LPPHEADER_DEFAULT)ReceiveBuffer;
     g_pTrade->ProcessToReceiveYourConfirm(Data->Value);
+    App::Control::Events::RecordTradePartnerConfirm(Data->Value);
 }
 
 void ReceiveTradeExit(const BYTE* ReceiveBuffer)
@@ -7379,6 +7386,7 @@ void ReceiveTradeExit(const BYTE* ReceiveBuffer)
 
     auto Data = (LPPHEADER_DEFAULT)ReceiveBuffer;
     g_pTrade->ProcessToReceiveTradeExit(Data->Value);
+    App::Control::Events::RecordTradeClosed(Data->Value);
 }
 
 void ReceivePing(const BYTE* ReceiveBuffer)

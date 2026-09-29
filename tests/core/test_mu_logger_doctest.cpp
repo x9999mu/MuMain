@@ -15,6 +15,9 @@
 #include "Core/Platform/SecureCrt.h"
 #include "Core/Platform/WinApiShims.h"
 #include "Core/Utilities/Log/MuLogger.h"
+#include "Core/Utilities/Log/SdlLogBridge.h"
+
+#include <SDL3/SDL.h>
 
 std::shared_ptr<spdlog::logger> GetEarlyLogger();
 
@@ -177,4 +180,28 @@ TEST_CASE("logger survives an unwritable log directory")
 
     CHECK_FALSE(std::filesystem::exists(unwritableDirectory));
     std::filesystem::remove_all(blocker);
+}
+
+TEST_CASE("SDL bridge writes named diagnostics to MuError.log")
+{
+    const auto directory = TestDirectory("sdl_log_bridge");
+    std::filesystem::remove_all(directory);
+
+    mu::log::Init(directory);
+    {
+        SDL_SetLogPriority(SDL_LOG_CATEGORY_VIDEO, SDL_LOG_PRIORITY_INFO);
+        Core::Log::Sdl::ScopedLogOutput logOutput;
+        SDL_LogInfo(SDL_LOG_CATEGORY_VIDEO, "SDL log bridge self-check");
+        {
+            Core::Log::Sdl::ScopedLogOutput nested;
+        }
+        SDL_LogInfo(SDL_LOG_CATEGORY_VIDEO, "SDL log bridge survives a nested guard");
+    }
+    mu::log::Shutdown();
+
+    SDL_ResetLogPriorities();
+    const std::string logContents = ReadFile(directory / "MuError.log");
+    CHECK(logContents.find("[sdl] [info] video: SDL log bridge self-check") != std::string::npos);
+    CHECK(logContents.find("[sdl] [info] video: SDL log bridge survives a nested guard") != std::string::npos);
+    std::filesystem::remove_all(directory);
 }

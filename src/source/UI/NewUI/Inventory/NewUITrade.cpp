@@ -603,12 +603,12 @@ void CNewUITrade::GetYourID(wchar_t* pszYourID)
     ::wcscpy(pszYourID, m_szYourID);
 }
 
-void CNewUITrade::ProcessToReceiveTradeRequest(char* pbyYourID)
+bool CNewUITrade::ProcessToReceiveTradeRequest(char* pbyYourID)
 {
     if (g_pNewUISystem->IsImpossibleTradeInterface())
     {
         SocketClient->ToGameServer()->SendTradeRequestResponse(false);
-        return;
+        return false;
     }
 
     CMultiLanguage::ConvertFromUtf8(m_szYourID, pbyYourID);
@@ -616,6 +616,7 @@ void CNewUITrade::ProcessToReceiveTradeRequest(char* pbyYourID)
     SEASON3B::CreateMessageBox(MSGBOX_LAYOUT_CLASS(SEASON3B::CTradeMsgBoxLayout));
 
     SEASON3B::CNewUIInventoryCtrl::BackupPickedItem();
+    return true;
 }
 
 void CNewUITrade::ProcessToReceiveTradeResult(LPPTRADE pTradeData)
